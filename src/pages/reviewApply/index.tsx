@@ -58,6 +58,7 @@ const ReviewApplyPage: React.FC = () => {
         <Image className={styles.avatar} src={apply.player.avatar} mode="aspectFill" />
         <View className={styles.playerInfo}>
           <Text className={styles.playerName}>{apply.player.name}</Text>
+          <Text className={styles.playerPhone}>📞 {apply.phone || apply.player.phone || '未填写手机号'}</Text>
           <View className={styles.tags}>
             {apply.player.tags.map((tag, idx) => (
               <Text key={idx} className={styles.tag}>{tag}</Text>
@@ -78,12 +79,16 @@ const ReviewApplyPage: React.FC = () => {
         <View className={styles.sectionTitle}>报名信息</View>
         <View className={styles.infoList}>
           <View className={styles.infoRow}>
-            <Text className={styles.label}>角色偏好</Text>
-            <Text className={styles.value}>{apply.rolePreference}</Text>
+            <Text className={styles.label}>手机号</Text>
+            <Text className={styles.value}>{apply.phone || apply.player.phone || '未填写'}</Text>
           </View>
           <View className={styles.infoRow}>
-            <Text className={styles.label}>座位偏好</Text>
-            <Text className={styles.value}>{apply.seatPreference}</Text>
+            <Text className={styles.label}>选座</Text>
+            <Text className={styles.value}>{apply.seatNumber ? `${apply.seatNumber}号座位` : `未选座 · ${apply.seatPreference}`}</Text>
+          </View>
+          <View className={styles.infoRow}>
+            <Text className={styles.label}>角色偏好</Text>
+            <Text className={styles.value}>{apply.rolePreference}</Text>
           </View>
           <View className={styles.infoRow}>
             <Text className={styles.label}>申请时间</Text>

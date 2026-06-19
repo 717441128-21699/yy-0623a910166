@@ -83,6 +83,7 @@
 
 .gameInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .gameName {
@@ -90,6 +91,7 @@
   font-weight: $font-weight-semibold;
   color: $color-text-primary;
   margin-bottom: 4rpx;
+  @include text-ellipsis;
 }
 
 .gameMeta {
@@ -97,21 +99,54 @@
   color: $color-text-tertiary;
 }
 
-.dm {
-  font-size: $font-size-sm;
-  color: $color-primary;
-  background: $color-bg-tag;
-  padding: 6rpx 16rpx;
-  border-radius: $radius-xs;
-}
-
-.playerList {
-  padding: $spacing-sm $spacing-lg;
-}
-
-.playerItem {
+.gameStats {
   display: flex;
-  align-items: center;
+  gap: $spacing-md;
+  flex-shrink: 0;
+}
+
+.statItem {
+  text-align: center;
+  
+  .statNum {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+    
+    &.checked {
+      color: $color-success;
+    }
+    
+    &.waitlist {
+      color: $color-gold;
+    }
+  }
+  
+  .statLabel {
+    font-size: 20rpx;
+    color: $color-text-tertiary;
+    margin-top: 2rpx;
+  }
+}
+
+.gameDetail {
+  padding: 0 $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.seatSection {
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.sectionTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.playerSection {
   padding: $spacing-md 0;
   border-bottom: 1rpx solid $color-divider;
   
@@ -120,39 +155,95 @@
   }
 }
 
+.playerList {
+  margin-top: $spacing-sm;
+}
+
+.playerItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm 0;
+  border-bottom: 1rpx solid $color-divider;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &.checkedItem {
+    opacity: 0.8;
+  }
+  
+  &.waitlistItem {
+    padding: $spacing-sm 0;
+  }
+}
+
+.waitlistRank {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: $radius-round;
+  background: $color-gold;
+  color: #fff;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: $spacing-sm;
+  flex-shrink: 0;
+}
+
 .playerAvatar {
   width: 72rpx;
   height: 72rpx;
   border-radius: $radius-round;
   margin-right: $spacing-md;
   background: $color-bg-hover;
+  flex-shrink: 0;
 }
 
 .playerDetail {
   flex: 1;
+  min-width: 0;
 }
 
-.playerName {
-  font-size: $font-size-md;
-  color: $color-text-primary;
+.playerNameRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
   margin-bottom: 4rpx;
 }
 
-.playerTags {
-  display: flex;
-  gap: 8rpx;
+.playerName {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
 }
 
-.playerTag {
+.seatBadge {
   font-size: 20rpx;
-  color: $color-text-tertiary;
-  background: $color-bg-hover;
+  color: $color-primary;
+  background: rgba(123, 44, 191, 0.1);
   padding: 2rpx 10rpx;
   border-radius: $radius-xs;
+  white-space: nowrap;
 }
 
-.status {
+.playerPhone {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.statusBadge {
   flex-shrink: 0;
+  font-size: $font-size-xs;
+  padding: 8rpx 16rpx;
+  border-radius: $radius-xs;
+  
+  &.checked {
+    background: rgba(24, 179, 88, 0.1);
+    color: $color-success;
+  }
 }
 
 .checkBtn {
@@ -163,55 +254,10 @@
   font-size: $font-size-xs;
   background: $color-bg-tag;
   color: $color-primary;
+  flex-shrink: 0;
   
   &:active {
     opacity: 0.8;
-  }
-}
-
-.checked {
-  color: $color-success;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-}
-
-.sectionTitle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: $spacing-md $spacing-lg;
-  background: $color-bg-page;
-  margin: 0 -$spacing-lg;
-  margin-top: $spacing-sm;
-  
-  .title {
-    font-size: $font-size-sm;
-    font-weight: $font-weight-semibold;
-    color: $color-text-secondary;
-  }
-  
-  .count {
-    font-size: $font-size-xs;
-    color: $color-text-tertiary;
-  }
-}
-
-.waitlistSection {
-  margin-top: 0;
-}
-
-.waitlistItem {
-  display: flex;
-  align-items: center;
-  padding: $spacing-md 0;
-  border-bottom: 1rpx solid $color-divider;
-  
-  &:last-child {
-    border-bottom: none;
-  }
-  
-  .playerName {
-    font-size: $font-size-sm;
   }
 }
 
@@ -223,10 +269,18 @@
   font-size: $font-size-xs;
   background: linear-gradient(135deg, $color-gold 0%, $color-gold-light 100%);
   color: #fff;
+  flex-shrink: 0;
   
   &:active {
     opacity: 0.9;
   }
+}
+
+.emptyHint {
+  padding: $spacing-md 0;
+  text-align: center;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
 }
 
 .summary {
@@ -245,6 +299,14 @@
     font-size: $font-size-lg;
     font-weight: $font-weight-bold;
     color: $color-primary;
+    
+    &.checked {
+      color: $color-success;
+    }
+    
+    &.waitlist {
+      color: $color-gold;
+    }
   }
   
   .label {

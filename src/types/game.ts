@@ -1,3 +1,10 @@
+export interface Seat {
+  number: number;
+  label: string;
+  playerId?: string;
+  status: 'available' | 'reserved' | 'occupied' | 'waitlist';
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -5,6 +12,8 @@ export interface Player {
   tags: string[];
   gender: 'male' | 'female' | 'unknown';
   experience: 'newbie' | 'normal' | 'veteran';
+  phone?: string;
+  seatNumber?: number;
 }
 
 export interface ApplyRecord {
@@ -13,11 +22,13 @@ export interface ApplyRecord {
   player: Player;
   rolePreference: string;
   seatPreference: string;
+  seatNumber?: number;
   message: string;
   status: 'pending' | 'approved' | 'rejected' | 'waitlist';
   applyTime: string;
   depositPaid: boolean;
   checkedIn: boolean;
+  phone?: string;
 }
 
 export interface Game {
@@ -43,6 +54,7 @@ export interface Game {
   address: string;
   depositAmount: number;
   tags: string[];
+  seats: Seat[];
 }
 
 export type TabKey = 'recruiting' | 'today' | 'all';
@@ -51,3 +63,5 @@ export interface ReviewItem {
   apply: ApplyRecord;
   game: Game;
 }
+
+export type ApplyStatus = 'pending' | 'approved' | 'rejected' | 'all';

@@ -3,7 +3,7 @@
 .container {
   min-height: 100vh;
   background: $color-bg-page;
-  padding-bottom: 120rpx;
+  padding-bottom: 200rpx;
 }
 
 .header {
@@ -28,11 +28,44 @@
   font-weight: $font-weight-semibold;
 }
 
+.statusTabs {
+  display: flex;
+  background: $color-bg-card;
+  padding: 0 $page-padding;
+  border-bottom: 1rpx solid $color-divider;
+  gap: $spacing-lg;
+}
+
+.statusTab {
+  padding: $spacing-md 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  position: relative;
+  flex-shrink: 0;
+  
+  &.active {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 48rpx;
+      height: 6rpx;
+      background: $color-primary;
+      border-radius: 3rpx;
+    }
+  }
+}
+
 .list {
   padding: $spacing-md $page-padding;
 }
 
-.card {
+.gameGroup {
   background: $color-bg-card;
   border-radius: $radius-lg;
   box-shadow: $shadow-card;
@@ -40,57 +73,137 @@
   overflow: hidden;
 }
 
-.cardHeader {
+.gameGroupHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: $spacing-md $spacing-lg;
   background: $color-bg-tag;
   border-bottom: 1rpx solid $color-divider;
 }
 
-.gameName {
+.checkbox {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: $spacing-sm;
+  flex-shrink: 0;
+}
+
+.checkboxInner {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid $color-border;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  transition: all $transition-fast;
+  
+  &.checked {
+    background: $color-primary;
+    border-color: $color-primary;
+  }
+}
+
+.checkIcon {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: bold;
+}
+
+.gameGroupInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.gameGroupName {
   font-size: $font-size-md;
   font-weight: $font-weight-semibold;
   color: $color-text-primary;
-  flex: 1;
+  margin-bottom: 4rpx;
   @include text-ellipsis;
 }
 
-.gameTime {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  flex-shrink: 0;
-  margin-left: $spacing-sm;
+.gameGroupMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
 }
 
-.cardBody {
-  padding: $spacing-lg;
+.arrow {
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  transition: transform $transition-fast;
+  margin-left: $spacing-sm;
+  
+  &.expanded {
+    transform: rotate(90deg);
+  }
+}
+
+.gameGroupBody {
+  padding: 0;
+}
+
+.applyItem {
+  display: flex;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+  transition: background $transition-fast;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &.selected {
+    background: rgba(123, 44, 191, 0.05);
+  }
+}
+
+.applyContent {
+  flex: 1;
+  min-width: 0;
 }
 
 .playerInfo {
   display: flex;
   align-items: center;
-  margin-bottom: $spacing-md;
+  margin-bottom: $spacing-sm;
 }
 
 .avatar {
-  width: 96rpx;
-  height: 96rpx;
+  width: 80rpx;
+  height: 80rpx;
   border-radius: $radius-round;
   margin-right: $spacing-md;
   background: $color-bg-hover;
+  flex-shrink: 0;
 }
 
 .playerDetail {
   flex: 1;
+  min-width: 0;
+}
+
+.playerNameRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: 4rpx;
 }
 
 .playerName {
   font-size: $font-size-md;
-  font-weight: $font-weight-semibold;
+  font-weight: $font-weight-medium;
   color: $color-text-primary;
-  margin-bottom: $spacing-xs;
+}
+
+.playerPhone {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-bottom: 6rpx;
 }
 
 .tags {
@@ -100,51 +213,51 @@
 }
 
 .tag {
-  font-size: $font-size-xs;
+  font-size: 20rpx;
   color: $color-text-secondary;
   background: $color-bg-hover;
-  padding: 4rpx 12rpx;
+  padding: 2rpx 12rpx;
   border-radius: $radius-xs;
   white-space: nowrap;
 }
 
 .applyInfo {
-  background: $color-bg-page;
-  border-radius: $radius-md;
-  padding: $spacing-md;
-  margin-bottom: $spacing-md;
+  display: flex;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-sm;
 }
 
 .infoRow {
   display: flex;
-  margin-bottom: $spacing-sm;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
+  align-items: center;
+  gap: 8rpx;
 }
 
 .infoLabel {
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   color: $color-text-tertiary;
-  width: 120rpx;
-  flex-shrink: 0;
 }
 
 .infoValue {
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   color: $color-text-secondary;
-  flex: 1;
 }
 
 .message {
   font-size: $font-size-sm;
   color: $color-text-secondary;
-  line-height: 1.6;
-  padding: $spacing-md;
+  line-height: 1.5;
   background: $color-bg-page;
-  border-radius: $radius-md;
-  margin-bottom: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.applyTime {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  text-align: right;
+  margin-bottom: $spacing-sm;
 }
 
 .actions {
@@ -155,7 +268,7 @@
 .btn {
   @include button-reset;
   flex: 1;
-  height: $button-height-md;
+  height: $button-height-sm;
   border-radius: $radius-button;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
@@ -177,9 +290,50 @@
   color: $color-text-white;
 }
 
-.applyTime {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-  text-align: right;
-  margin-bottom: $spacing-sm;
+.batchBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + #{env(safe-area-inset-bottom)});
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.batchInfo {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.batchActions {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.batchBtn {
+  @include button-reset;
+  height: $button-height-md;
+  padding: 0 $spacing-lg;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.batchReject {
+  background: $color-bg-hover;
+  color: $color-error;
+}
+
+.batchApprove {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
 }

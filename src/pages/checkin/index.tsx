@@ -4,13 +4,19 @@ import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
 import classnames from 'classnames';
 import EmptyState from '@/components/EmptyState';
+import SeatMap from '@/components/SeatMap';
 import { useGameContext } from '@/context/GameContext';
 
 const CheckinPage: React.FC = () => {
   const { games, getTodayGames, checkIn, promoteFromWaitlist, checkedPlayerIds } = useGameContext();
   const [activeTab, setActiveTab] = useState<'today' | 'all'>('today');
+  const [expandedGameId, setExpandedGameId] = useState<string | null>(null);
 
   const displayGames = activeTab === 'today' ? getTodayGames() : games;
+
+  const toggleGame = (gameId: string) => {
+    setExpandedGameId(prev => prev === gameId ? null : gameId);
+  };
 
   const handleCheckIn = (playerId: string) => {
     if (checkedPlayerIds.includes(playerId)) {
@@ -46,6 +52,19 @@ const CheckinPage: React.FC = () => {
     });
   };
 
+  const callPhone = (phone?: string) => {
+    if (!phone) {
+      Taro.showToast({ title: '暂无手机号', icon: 'none' });
+      return;
+    }
+    Taro.makePhoneCall({
+      phoneNumber: phone,
+      fail: () => {
+        Taro.showToast({ title: '拨打失败', icon: 'none' });
+      }
+    });
+  };
+
   return (
     <View className={styles.container}>
       <View className={styles.header}>
@@ -70,100 +89,193 @@ const CheckinPage: React.FC = () => {
 
       <View className={styles.list}>
         {displayGames.length > 0 ? (
-          displayGames.map(game => (
-            <View key={game.id} className={styles.gameCard}>
-              <View className={styles.gameHeader}>
-                <View className={styles.gameInfo}>
-                  <Text className={styles.gameName}>{game.name}</Text>
-                  <Text className={styles.gameMeta}>
-                    {game.date} {game.time} · {game.duration}h · {game.playerConfig}
-                  </Text>
-                </View>
-                <View className={styles.dm}>
-                  <Text>{game.dm}</Text>
-                </View>
-              </View>
+          displayGames.map(game => {
+            const isExpanded = expandedGameId === game.id;
+            const checkedCount = game.players.filter(p => checkedPlayerIds.includes(p.id)).length;
+            const uncheckedCount = game.players.length - checkedCount;
 
-              <View className={styles.playerList}>
-                {game.players.map(player => (
-                  <View key={player.id} className={styles.playerItem}>
-                    <Image 
-                      className={styles.playerAvatar} 
-                      src={player.avatar} 
-                      mode="aspectFill"
-                    />
-                    <View className={styles.playerDetail}>
-                      <Text className={styles.playerName}>{player.name}</Text>
-                      <View className={styles.playerTags}>
-                        {player.tags.slice(0, 2).map((tag, idx) => (
-                          <Text key={idx} className={styles.playerTag}>{tag}</Text>
-                        ))}
-                      </View>
+            return (
+              <View key={game.id} className={styles.gameCard}>
+                <View 
+                  className={styles.gameHeader}
+                  onClick={() => toggleGame(game.id)}
+                >
+                  <View className={styles.gameInfo}>
+                    <Text className={styles.gameName}>{game.name}</Text>
+                    <Text className={styles.gameMeta}>
+                      {game.date} {game.time} · {game.duration}h · DM {game.dm}
+                    </Text>
+                  </View>
+                  <View className={styles.gameStats}>
+                    <View className={styles.statItem}>
+                      <Text className={styles.statNum checked}>{checkedCount}</Text>
+                      <Text className={styles.statLabel}>已到</Text>
                     </View>
-                    <View className={styles.status}>
-                      {checkedPlayerIds.includes(player.id) ? (
-                        <Text className={styles.checked}>✓ 已签到</Text>
-                      ) : (
-                        <View 
-                          className={styles.checkBtn}
-                          onClick={() => handleCheckIn(player.id)}
-                        >
-                          <Text>签到</Text>
-                        </View>
-                      )}
+                    <View className={styles.statItem}>
+                      <Text className={styles.statNum}>{uncheckedCount}</Text>
+                      <Text className={styles.statLabel}>未到</Text>
+                    </View>
+                    <View className={styles.statItem}>
+                      <Text className={styles.statNum waitlist}>{game.waitlist.length}</Text>
+                      <Text className={styles.statLabel}>候补</Text>
                     </View>
                   </View>
-                ))}
+                </View>
 
-                {game.waitlist.length > 0 && (
-                  <>
-                    <View className={styles.sectionTitle}>
-                      <Text className={styles.title}>候补名单</Text>
-                      <Text className={styles.count}>{game.waitlist.length}人</Text>
+                {isExpanded && (
+                  <View className={styles.gameDetail}>
+                    <View className={styles.seatSection}>
+                      <Text className={styles.sectionTitle}>座位图</Text>
+                      <SeatMap 
+                        seats={game.seats}
+                        showPlayerName={true}
+                        dmPosition="top"
+                      />
                     </View>
-                    {game.waitlist.map(player => (
-                      <View key={player.id} className={styles.waitlistItem}>
-                        <Image 
-                          className={styles.playerAvatar} 
-                          src={player.avatar} 
-                          mode="aspectFill"
-                        />
-                        <View className={styles.playerDetail}>
-                          <Text className={styles.playerName}>{player.name}</Text>
-                          <View className={styles.playerTags}>
-                            {player.tags.slice(0, 2).map((tag, idx) => (
-                              <Text key={idx} className={styles.playerTag}>{tag}</Text>
-                            ))}
+
+                    <View className={styles.playerSection}>
+                      <Text className={styles.sectionTitle}>
+                        已到店 ({checkedCount}/{game.players.length})
+                      </Text>
+                      <View className={styles.playerList}>
+                        {game.players.filter(p => checkedPlayerIds.includes(p.id)).map(player => (
+                          <View key={player.id} className={classnames(styles.playerItem, styles.checkedItem)}>
+                            <Image 
+                              className={styles.playerAvatar} 
+                              src={player.avatar} 
+                              mode="aspectFill"
+                            />
+                            <View className={styles.playerDetail}>
+                              <View className={styles.playerNameRow}>
+                                <Text className={styles.playerName}>{player.name}</Text>
+                                {player.seatNumber && (
+                                  <Text className={styles.seatBadge}>{player.seatNumber}座</Text>
+                                )}
+                              </View>
+                              <Text 
+                                className={styles.playerPhone}
+                                onClick={() => callPhone(player.phone)}
+                              >
+                                📞 {player.phone || '暂无手机号'}
+                              </Text>
+                            </View>
+                            <View className={styles.statusBadge checked}>
+                              <Text>✓ 已到</Text>
+                            </View>
                           </View>
-                        </View>
-                        <View 
-                          className={styles.promoteBtn}
-                          onClick={() => handlePromote(game.id, player.id, player.name, game.name)}
-                        >
-                          <Text>补位</Text>
+                        ))}
+                        {checkedCount === 0 && (
+                          <View className={styles.emptyHint}>
+                            <Text>暂无玩家到店</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+
+                    <View className={styles.playerSection}>
+                      <Text className={styles.sectionTitle}>
+                        未到店 ({uncheckedCount})
+                      </Text>
+                      <View className={styles.playerList}>
+                        {game.players.filter(p => !checkedPlayerIds.includes(p.id)).map(player => (
+                          <View key={player.id} className={styles.playerItem}>
+                            <Image 
+                              className={styles.playerAvatar} 
+                              src={player.avatar} 
+                              mode="aspectFill"
+                            />
+                            <View className={styles.playerDetail}>
+                              <View className={styles.playerNameRow}>
+                                <Text className={styles.playerName}>{player.name}</Text>
+                                {player.seatNumber && (
+                                  <Text className={styles.seatBadge}>{player.seatNumber}座</Text>
+                                )}
+                              </View>
+                              <Text 
+                                className={styles.playerPhone}
+                                onClick={() => callPhone(player.phone)}
+                              >
+                                📞 {player.phone || '暂无手机号'}
+                              </Text>
+                            </View>
+                            <View 
+                              className={styles.checkBtn}
+                              onClick={() => handleCheckIn(player.id)}
+                            >
+                              <Text>签到</Text>
+                            </View>
+                          </View>
+                        ))}
+                        {uncheckedCount === 0 && (
+                          <View className={styles.emptyHint}>
+                            <Text>全部玩家已到店</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+
+                    {game.waitlist.length > 0 && (
+                      <View className={styles.playerSection}>
+                        <Text className={styles.sectionTitle}>
+                          候补名单 ({game.waitlist.length}人)
+                        </Text>
+                        <View className={styles.playerList}>
+                          {game.waitlist.map((player, index) => (
+                            <View key={player.id} className={classnames(styles.playerItem, styles.waitlistItem)}>
+                              <View className={styles.waitlistRank}>
+                                <Text>{index + 1}</Text>
+                              </View>
+                              <Image 
+                                className={styles.playerAvatar} 
+                                src={player.avatar} 
+                                mode="aspectFill"
+                              />
+                              <View className={styles.playerDetail}>
+                                <View className={styles.playerNameRow}>
+                                  <Text className={styles.playerName}>{player.name}</Text>
+                                </View>
+                                <Text 
+                                  className={styles.playerPhone}
+                                  onClick={() => callPhone(player.phone)}
+                                >
+                                  📞 {player.phone || '暂无手机号'}
+                                </Text>
+                              </View>
+                              <View 
+                                className={styles.promoteBtn}
+                                onClick={() => handlePromote(game.id, player.id, player.name, game.name)}
+                              >
+                                <Text>补位</Text>
+                              </View>
+                            </View>
+                          ))}
                         </View>
                       </View>
-                    ))}
-                  </>
+                    )}
+                  </View>
                 )}
-              </View>
 
-              <View className={styles.summary}>
-                <View className={styles.summaryItem}>
-                  <Text className={styles.num}>{game.players.length}</Text>
-                  <Text className={styles.label}>总人数</Text>
-                </View>
-                <View className={styles.summaryItem}>
-                  <Text className={styles.num}>{checkedPlayerIds.filter(id => game.players.some(p => p.id === id)).length}</Text>
-                  <Text className={styles.label}>已签到</Text>
-                </View>
-                <View className={styles.summaryItem}>
-                  <Text className={styles.num}>{game.waitlist.length}</Text>
-                  <Text className={styles.label}>候补</Text>
+                <View className={styles.summary}>
+                  <View className={styles.summaryItem}>
+                    <Text className={styles.num}>{game.players.length}</Text>
+                    <Text className={styles.label}>总人数</Text>
+                  </View>
+                  <View className={styles.summaryItem}>
+                    <Text className={styles.num checked}>{checkedCount}</Text>
+                    <Text className={styles.label}>已到店</Text>
+                  </View>
+                  <View className={styles.summaryItem}>
+                    <Text className={styles.num}>{uncheckedCount}</Text>
+                    <Text className={styles.label}>未到店</Text>
+                  </View>
+                  <View className={styles.summaryItem}>
+                    <Text className={styles.num waitlist}>{game.waitlist.length}</Text>
+                    <Text className={styles.label}>候补</Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))
+            );
+          })
         ) : (
           <EmptyState 
             title="今日无场次"

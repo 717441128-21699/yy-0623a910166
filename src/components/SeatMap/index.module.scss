@@ -1,0 +1,157 @@
+@use '@/styles/variables.scss' as *;
+
+.seatMap {
+  padding: $spacing-md 0;
+}
+
+.table {
+  width: 60%;
+  height: 120rpx;
+  margin: 0 auto $spacing-lg;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  border-radius: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $shadow-card;
+}
+
+.tableText {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  letter-spacing: 4rpx;
+}
+
+.seatsArea {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding: 0 $spacing-md;
+}
+
+.seatRow {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-md;
+}
+
+.seatItem {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-md;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+  position: relative;
+  
+  &.available {
+    background: $color-bg-hover;
+    border: 2rpx dashed $color-border;
+    
+    .seatNum {
+      color: $color-text-tertiary;
+    }
+  }
+  
+  &.occupied {
+    background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+    box-shadow: 0 4rpx 12rpx rgba(123, 44, 191, 0.3);
+    
+    .seatNum {
+      color: $color-text-white;
+      font-weight: $font-weight-semibold;
+    }
+    
+    .seatName {
+      color: $color-text-white;
+    }
+  }
+  
+  &.reserved {
+    background: rgba(255, 125, 0, 0.15);
+    border: 2rpx solid $color-warning;
+    
+    .seatNum {
+      color: $color-warning;
+      font-weight: $font-weight-semibold;
+    }
+  }
+  
+  &.selected {
+    transform: scale(1.1);
+    box-shadow: 0 4rpx 16rpx rgba(123, 44, 191, 0.4);
+    
+    &.available {
+      background: $color-bg-tag;
+      border: 2rpx solid $color-primary;
+      
+      .seatNum {
+        color: $color-primary;
+        font-weight: $font-weight-semibold;
+      }
+    }
+  }
+  
+  &.clickable {
+    cursor: pointer;
+    
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+.seatNum {
+  font-size: $font-size-md;
+  line-height: 1;
+}
+
+.seatName {
+  font-size: 20rpx;
+  margin-top: 4rpx;
+  @include text-ellipsis;
+  max-width: 80rpx;
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-lg;
+  margin-top: $spacing-lg;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.legendDot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: $radius-xs;
+  
+  &.available {
+    background: $color-bg-hover;
+    border: 2rpx dashed $color-border;
+  }
+  
+  &.occupied {
+    background: $color-primary;
+  }
+  
+  &.reserved {
+    background: rgba(255, 125, 0, 0.15);
+    border: 2rpx solid $color-warning;
+  }
+}
+
+.legendText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}

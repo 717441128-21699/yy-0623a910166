@@ -4,6 +4,8 @@ import Taro, { useRouter } from '@tarojs/taro';
 import styles from './index.module.scss';
 import classnames from 'classnames';
 import { useGameContext } from '@/context/GameContext';
+import SeatMap from '@/components/SeatMap';
+import { Seat } from '@/types/game';
 
 const roleOptions = ['男性角色', '女性角色', '都可以', 'C位角色', '边缘角色'];
 const seatOptions = ['随便坐', '靠边坐', '中间位置', '靠近DM', '远离DM'];
@@ -19,6 +21,7 @@ const PlayerApplyPage: React.FC = () => {
     phone: '',
     rolePreference: '都可以',
     seatPreference: '随便坐',
+    selectedSeat: undefined as number | undefined,
     message: ''
   });
 
@@ -41,7 +44,14 @@ const PlayerApplyPage: React.FC = () => {
     handleInputChange('rolePreference', role);
   };
 
-  const handleSeatSelect = (seat: string) => {
+  const handleSeatSelect = (seat: Seat) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedSeat: seat.number
+    }));
+  };
+
+  const handleSeatPrefSelect = (seat: string) => {
     handleInputChange('seatPreference', seat);
   };
 
@@ -71,11 +81,15 @@ const PlayerApplyPage: React.FC = () => {
               avatar: `https://picsum.photos/id/${Math.floor(Math.random() * 1000) + 1}/200/200`,
               tags: [formData.rolePreference, formData.seatPreference],
               gender: 'unknown',
-              experience: 'normal'
+              experience: 'normal',
+              phone: formData.phone,
+              seatNumber: formData.selectedSeat
             },
             rolePreference: formData.rolePreference,
             seatPreference: formData.seatPreference,
-            message: formData.message
+            seatNumber: formData.selectedSeat,
+            message: formData.message,
+            phone: formData.phone
           });
 
           Taro.showToast({ title: '报名成功', icon: 'success' });
@@ -134,6 +148,20 @@ const PlayerApplyPage: React.FC = () => {
       </View>
 
       <View className={styles.section}>
+        <View className={styles.sectionTitle}>选择座位</View>
+        <SeatMap
+          seats={game.seats}
+          players={game.players}
+          onSeatClick={handleSeatSelect}
+          selectedSeatNumber={formData.selectedSeat}
+          showLabels={false}
+        />
+        <Text style={{ fontSize: '24rpx', color: '#86909C', textAlign: 'center', marginTop: '16rpx' }}>
+          {formData.selectedSeat ? `已选择 ${formData.selectedSeat} 号座位` : '点击座位选择（可选座位）'}
+        </Text>
+      </View>
+
+      <View className={styles.section}>
         <View className={styles.sectionTitle}>角色偏好</View>
         <View className={styles.roleOptions}>
           {roleOptions.map(role => (
@@ -149,13 +177,13 @@ const PlayerApplyPage: React.FC = () => {
       </View>
 
       <View className={styles.section}>
-        <View className={styles.sectionTitle}>座位偏好</View>
+        <View className={styles.sectionTitle}>座位偏好（辅助选择）</View>
         <View className={styles.optionList}>
           {seatOptions.map(seat => (
             <View 
               key={seat}
               className={classnames(styles.optionItem, formData.seatPreference === seat && styles.active)}
-              onClick={() => handleSeatSelect(seat)}
+              onClick={() => handleSeatPrefSelect(seat)}
             >
               <Text>{seat}</Text>
             </View>

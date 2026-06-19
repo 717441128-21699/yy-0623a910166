@@ -30,6 +30,12 @@
   font-size: $font-size-xl;
   font-weight: $font-weight-bold;
   color: $color-text-white;
+  margin-bottom: $spacing-xs;
+}
+
+.playerPhone {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: $spacing-sm;
 }
 

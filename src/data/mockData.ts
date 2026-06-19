@@ -1,4 +1,19 @@
-import { Game, Player, ApplyRecord, ReviewItem } from '@/types/game';
+import { Game, Player, ApplyRecord, ReviewItem, Seat } from '@/types/game';
+
+function generateSeats(total: number, occupiedIds: string[]): Seat[] {
+  const seats: Seat[] = [];
+  for (let i = 1; i <= total; i++) {
+    const idx = i - 1;
+    const playerId = occupiedIds[idx];
+    seats.push({
+      number: i,
+      label: `${i}号`,
+      playerId,
+      status: playerId ? 'occupied' : 'available'
+    });
+  }
+  return seats;
+}
 
 export const mockPlayers: Player[] = [
   {
@@ -7,7 +22,9 @@ export const mockPlayers: Player[] = [
     avatar: 'https://picsum.photos/id/64/200/200',
     tags: ['硬核玩家', '情感本爱好者', '不跳车'],
     gender: 'male',
-    experience: 'veteran'
+    experience: 'veteran',
+    phone: '138****1234',
+    seatNumber: 1
   },
   {
     id: 'p2',
@@ -15,7 +32,9 @@ export const mockPlayers: Player[] = [
     avatar: 'https://picsum.photos/id/91/200/200',
     tags: ['新手', '推理小白', '女生'],
     gender: 'female',
-    experience: 'newbie'
+    experience: 'newbie',
+    phone: '139****5678',
+    seatNumber: 2
   },
   {
     id: 'p3',
@@ -23,7 +42,8 @@ export const mockPlayers: Player[] = [
     avatar: 'https://picsum.photos/id/177/200/200',
     tags: ['推土机', '硬核本专业', '拼场常客'],
     gender: 'male',
-    experience: 'veteran'
+    experience: 'veteran',
+    phone: '136****2233'
   },
   {
     id: 'p4',
@@ -31,7 +51,9 @@ export const mockPlayers: Player[] = [
     avatar: 'https://picsum.photos/id/338/200/200',
     tags: ['情感喷泉', '哭本玩家', '老玩家'],
     gender: 'female',
-    experience: 'normal'
+    experience: 'normal',
+    phone: '137****8899',
+    seatNumber: 3
   },
   {
     id: 'p5',
@@ -39,7 +61,9 @@ export const mockPlayers: Player[] = [
     avatar: 'https://picsum.photos/id/1027/200/200',
     tags: ['欢乐本', '戏精', '新手友好'],
     gender: 'male',
-    experience: 'normal'
+    experience: 'normal',
+    phone: '135****4455',
+    seatNumber: 4
   },
   {
     id: 'p6',
@@ -47,11 +71,17 @@ export const mockPlayers: Player[] = [
     avatar: 'https://picsum.photos/id/1025/200/200',
     tags: ['硬核', '密室玩家', '不反串'],
     gender: 'female',
-    experience: 'veteran'
+    experience: 'veteran',
+    phone: '158****7766'
   }
 ];
 
-export const mockGames: Game[] = [
+function buildGameSeats(game: Game): Seat[] {
+  const occupiedIds = game.players.map(p => p.id);
+  return generateSeats(game.totalSeats, occupiedIds);
+}
+
+const rawGames: Omit<Game, 'seats'>[] = [
   {
     id: 'g1',
     name: '浮云万里青鸟迟',
@@ -174,6 +204,11 @@ export const mockGames: Game[] = [
   }
 ];
 
+export const mockGames: Game[] = rawGames.map(g => ({
+  ...g,
+  seats: buildGameSeats(g as Game)
+}));
+
 export const mockPendingApplies: ApplyRecord[] = [
   {
     id: 'a1',
@@ -181,11 +216,13 @@ export const mockPendingApplies: ApplyRecord[] = [
     player: mockPlayers[2],
     rolePreference: '男性角色',
     seatPreference: '随便',
+    seatNumber: 5,
     message: '老玩家，不跳车，准时到。求通过！',
     status: 'pending',
     applyTime: '2024-06-19 15:30',
     depositPaid: false,
-    checkedIn: false
+    checkedIn: false,
+    phone: '136****2233'
   },
   {
     id: 'a2',
@@ -193,11 +230,13 @@ export const mockPendingApplies: ApplyRecord[] = [
     player: mockPlayers[5],
     rolePreference: '女性角色都行',
     seatPreference: '靠边坐',
+    seatNumber: 6,
     message: '情感本老玩家，哭点低，好代入。',
     status: 'pending',
     applyTime: '2024-06-19 16:20',
     depositPaid: false,
-    checkedIn: false
+    checkedIn: false,
+    phone: '158****7766'
   },
   {
     id: 'a3',
@@ -205,11 +244,13 @@ export const mockPendingApplies: ApplyRecord[] = [
     player: mockPlayers[0],
     rolePreference: '男主',
     seatPreference: '中间位置',
+    seatNumber: 1,
     message: '经常来你们店，老顾客了，给个好角色呗~',
     status: 'pending',
     applyTime: '2024-06-19 18:45',
     depositPaid: false,
-    checkedIn: false
+    checkedIn: false,
+    phone: '138****1234'
   },
   {
     id: 'a4',
@@ -221,7 +262,8 @@ export const mockPendingApplies: ApplyRecord[] = [
     status: 'pending',
     applyTime: '2024-06-20 09:10',
     depositPaid: false,
-    checkedIn: false
+    checkedIn: false,
+    phone: '136****2233'
   }
 ];
 
