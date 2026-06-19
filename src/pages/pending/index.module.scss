@@ -1,0 +1,185 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 120rpx;
+}
+
+.header {
+  background: $color-bg-card;
+  padding: $spacing-lg $page-padding;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.count {
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.list {
+  padding: $spacing-md $page-padding;
+}
+
+.card {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $spacing-lg;
+  background: $color-bg-tag;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.gameName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  flex: 1;
+  @include text-ellipsis;
+}
+
+.gameTime {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+  margin-left: $spacing-sm;
+}
+
+.cardBody {
+  padding: $spacing-lg;
+}
+
+.playerInfo {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+}
+
+.avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-md;
+  background: $color-bg-hover;
+}
+
+.playerDetail {
+  flex: 1;
+}
+
+.playerName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.tag {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  background: $color-bg-hover;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  white-space: nowrap;
+}
+
+.applyInfo {
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.infoRow {
+  display: flex;
+  margin-bottom: $spacing-sm;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.infoLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  width: 120rpx;
+  flex-shrink: 0;
+}
+
+.infoValue {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex: 1;
+}
+
+.message {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+  padding: $spacing-md;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.btn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: all $transition-base;
+  
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.btnReject {
+  background: $color-bg-hover;
+  color: $color-text-secondary;
+}
+
+.btnApprove {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+}
+
+.applyTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: right;
+  margin-bottom: $spacing-sm;
+}

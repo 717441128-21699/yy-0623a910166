@@ -1,0 +1,126 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 120rpx;
+}
+
+.header {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  padding: $spacing-lg $page-padding $spacing-xl;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100rpx;
+    right: -100rpx;
+    width: 300rpx;
+    height: 300rpx;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+}
+
+.createBtn {
+  @include button-reset;
+  height: $button-height-md;
+  padding: 0 $spacing-lg;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-white;
+  
+  &:active {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.stats {
+  display: flex;
+  gap: $spacing-lg;
+}
+
+.statItem {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  
+  .number {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-text-white;
+    line-height: 1.2;
+    margin-bottom: 4rpx;
+  }
+  
+  .label {
+    font-size: $font-size-xs;
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.tabs {
+  display: flex;
+  background: $color-bg-card;
+  margin: 0 $page-padding;
+  margin-top: -32rpx;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  position: relative;
+  z-index: 1;
+}
+
+.tabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-md 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  position: relative;
+  transition: all $transition-base;
+  
+  &.active {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 48rpx;
+      height: 6rpx;
+      background: $color-primary;
+      border-radius: 3rpx;
+    }
+  }
+}
+
+.list {
+  padding: $spacing-lg $page-padding;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}

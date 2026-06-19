@@ -1,0 +1,238 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 160rpx;
+}
+
+.gameHeader {
+  background: $color-bg-card;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  box-shadow: $shadow-card;
+}
+
+.cover {
+  width: 160rpx;
+  height: 200rpx;
+  border-radius: $radius-md;
+  margin-right: $spacing-md;
+  background: $color-bg-hover;
+  flex-shrink: 0;
+}
+
+.gameInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.gameName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+  @include text-ellipsis;
+}
+
+.gameMeta {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+}
+
+.price {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-price;
+}
+
+.section {
+  background: $color-bg-card;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  border-radius: 0;
+  
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.formItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.label {
+  width: 160rpx;
+  flex-shrink: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.inputWrap {
+  flex: 1;
+}
+
+.input {
+  width: 100%;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  background: transparent;
+  border: none;
+  outline: none;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+}
+
+.optionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  padding: $spacing-md $spacing-lg;
+}
+
+.optionItem {
+  padding: $spacing-sm $spacing-md;
+  background: $color-bg-hover;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-fast;
+  
+  &.active {
+    background: $color-bg-tag;
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+  
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.textareaWrap {
+  padding: $spacing-md $spacing-lg;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 160rpx;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  line-height: 1.6;
+  box-sizing: border-box;
+  
+  &::placeholder {
+    color: $color-text-disabled;
+  }
+}
+
+.notice {
+  background: #FFF7E6;
+  margin: 0 $page-padding $spacing-md;
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  
+  .title {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $color-warning;
+    margin-bottom: $spacing-xs;
+  }
+  
+  .text {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    line-height: 1.6;
+  }
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc($spacing-md + env(safe-area-inset-bottom));
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+
+.submitBtn {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-lg;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  transition: all $transition-base;
+  
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  &.disabled {
+    background: $color-bg-hover;
+    color: $color-text-disabled;
+  }
+}
+
+.depositTip {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: center;
+  margin-top: $spacing-sm;
+}
+
+.roleOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  padding: $spacing-md $spacing-lg;
+}
+
+.roleOption {
+  padding: $spacing-sm $spacing-md;
+  background: $color-bg-hover;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-fast;
+  
+  &.active {
+    background: $color-bg-tag;
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+    border: 2rpx solid $color-primary;
+  }
+  
+  &:active {
+    opacity: 0.8;
+  }
+}

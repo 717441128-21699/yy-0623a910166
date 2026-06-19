@@ -1,0 +1,179 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 160rpx;
+}
+
+.playerHeader {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  padding: $spacing-xl $page-padding;
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: $radius-round;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  margin-right: $spacing-lg;
+  background: $color-bg-hover;
+}
+
+.playerInfo {
+  flex: 1;
+}
+
+.playerName {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: $spacing-sm;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.tag {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  white-space: nowrap;
+}
+
+.section {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  margin: $spacing-md $page-padding;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.infoList {
+  padding: $spacing-sm 0;
+}
+
+.infoRow {
+  display: flex;
+  padding: $spacing-sm $spacing-lg;
+  
+  .label {
+    width: 140rpx;
+    flex-shrink: 0;
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+  }
+  
+  .value {
+    flex: 1;
+    font-size: $font-size-sm;
+    color: $color-text-primary;
+  }
+}
+
+.messageBox {
+  padding: $spacing-md $spacing-lg;
+  
+  .message {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    line-height: 1.6;
+    background: $color-bg-page;
+    padding: $spacing-md;
+    border-radius: $radius-md;
+  }
+}
+
+.gameInfo {
+  display: flex;
+  padding: $spacing-md $spacing-lg;
+  align-items: center;
+  
+  .gameName {
+    flex: 1;
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+  }
+  
+  .gameTime {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+  }
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc($spacing-md + env(safe-area-inset-bottom));
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  gap: $spacing-md;
+  z-index: 10;
+}
+
+.btn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-base;
+  
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+.btnReject {
+  background: $color-bg-hover;
+  color: $color-error;
+}
+
+.btnApprove {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+}
+
+.rejectReasons {
+  padding: $spacing-sm $spacing-lg;
+}
+
+.reasonItem {
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-divider;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:active {
+    background: $color-bg-hover;
+    margin: 0 -$spacing-lg;
+    padding-left: $spacing-lg;
+    padding-right: $spacing-lg;
+  }
+}

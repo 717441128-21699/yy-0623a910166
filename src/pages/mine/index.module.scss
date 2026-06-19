@@ -1,0 +1,147 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 120rpx;
+}
+
+.header {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  padding: $spacing-xl $page-spacing;
+  padding-bottom: 100rpx;
+  position: relative;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: $radius-round;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  margin-right: $spacing-md;
+  background: $color-bg-hover;
+}
+
+.userDetail {
+  flex: 1;
+}
+
+.userName {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: $spacing-xs;
+}
+
+.role {
+  display: inline-block;
+  font-size: $font-size-xs;
+  color: $color-primary;
+  background: $color-gold;
+  padding: 6rpx 16rpx;
+  border-radius: $radius-xs;
+}
+
+.menuCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  margin: -60rpx $page-spacing $spacing-md;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+  transition: background $transition-fast;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+.menuIcon {
+  font-size: 40rpx;
+  margin-right: $spacing-md;
+  width: 56rpx;
+  text-align: center;
+}
+
+.menuText {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.menuArrow {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.statsCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  margin: 0 $page-spacing $spacing-md;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.statsTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+}
+
+.statsGrid {
+  display: flex;
+}
+
+.statItem {
+  flex: 1;
+  text-align: center;
+  
+  &:not(:last-child) {
+    border-right: 1rpx solid $color-divider;
+  }
+}
+
+.statNum {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  line-height: 1.2;
+  margin-bottom: $spacing-xs;
+}
+
+.statLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.sectionTitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  padding: $spacing-md $page-spacing;
+}
+
+.listCard {
+  background: $color-bg-card;
+  margin: 0 $page-spacing;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+}

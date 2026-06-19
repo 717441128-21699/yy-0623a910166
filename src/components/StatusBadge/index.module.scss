@@ -1,0 +1,65 @@
+@use '@/styles/variables.scss' as *;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: $radius-xs;
+  
+  &.sm {
+    padding: 4rpx 12rpx;
+  }
+  
+  &.md {
+    padding: 8rpx 20rpx;
+  }
+  
+  .text {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    line-height: 1.2;
+  }
+  
+  &.success {
+    background: rgba(0, 180, 42, 0.1);
+    .text {
+      color: $color-success;
+    }
+  }
+  
+  &.warning {
+    background: rgba(255, 125, 0, 0.1);
+    .text {
+      color: $color-warning;
+    }
+  }
+  
+  &.primary {
+    background: rgba(123, 44, 191, 0.1);
+    .text {
+      color: $color-primary;
+    }
+  }
+  
+  &.error {
+    background: rgba(245, 63, 63, 0.1);
+    .text {
+      color: $color-error;
+    }
+  }
+  
+  &.default {
+    background: $color-bg-hover;
+    .text {
+      color: $color-text-tertiary;
+    }
+  }
+  
+  &.gold {
+    background: linear-gradient(135deg, $color-gold 0%, $color-gold-light 100%);
+    .text {
+      color: #fff;
+    }
+  }
+}

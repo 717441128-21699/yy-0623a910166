@@ -1,0 +1,288 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 160rpx;
+}
+
+.cover {
+  width: 100%;
+  height: 420rpx;
+  position: relative;
+}
+
+.coverImg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.coverOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200rpx;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+}
+
+.coverBadges {
+  position: absolute;
+  top: $spacing-lg;
+  left: $spacing-lg;
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.shareBtn {
+  position: absolute;
+  top: $spacing-lg;
+  right: $spacing-lg;
+  @include button-reset;
+  height: $button-height-md;
+  padding: 0 $spacing-lg;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  
+  &:active {
+    background: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.content {
+  margin-top: -40rpx;
+  position: relative;
+  z-index: 1;
+  padding: 0 $page-padding;
+}
+
+.infoCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+}
+
+.gameTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-lg;
+}
+
+.tag {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  background: $color-bg-tag;
+  padding: 6rpx 16rpx;
+  border-radius: $radius-xs;
+  white-space: nowrap;
+}
+
+.infoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1rpx solid $color-divider;
+  padding-top: $spacing-md;
+}
+
+.infoItem {
+  width: 50%;
+  margin-bottom: $spacing-md;
+  
+  .label {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+    margin-bottom: 6rpx;
+  }
+  
+  .value {
+    font-size: $font-size-md;
+    color: $color-text-primary;
+    font-weight: $font-weight-medium;
+  }
+  
+  .price {
+    color: $color-price;
+    font-weight: $font-weight-bold;
+    font-size: $font-size-lg;
+  }
+}
+
+.section {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.remain {
+  font-size: $font-size-sm;
+  color: $color-warning;
+  font-weight: $font-weight-medium;
+}
+
+.playerList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.playerItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: calc((100% - 48rpx) / 4);
+}
+
+.playerAvatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-round;
+  margin-bottom: $spacing-xs;
+  background: $color-bg-hover;
+}
+
+.playerName {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-align: center;
+  @include text-ellipsis;
+  width: 100%;
+}
+
+.emptySeat {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-round;
+  border: 2rpx dashed $color-border;
+  margin-bottom: $spacing-xs;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.notice {
+  background: #FFF7E6;
+  border-left: 6rpx solid $color-warning;
+  padding: $spacing-md;
+  border-radius: 0 $radius-sm $radius-sm 0;
+  
+  .title {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $color-warning;
+    margin-bottom: $spacing-xs;
+  }
+  
+  .text {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    line-height: 1.6;
+  }
+}
+
+.ruleList {
+  .ruleItem {
+    display: flex;
+    align-items: center;
+    padding: $spacing-sm 0;
+    border-bottom: 1rpx solid $color-divider;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .icon {
+      font-size: 28rpx;
+      margin-right: $spacing-sm;
+    }
+    
+    .text {
+      flex: 1;
+      font-size: $font-size-sm;
+      color: $color-text-secondary;
+    }
+    
+    .status {
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      
+      &.yes {
+        color: $color-success;
+      }
+      
+      &.no {
+        color: $color-text-tertiary;
+      }
+    }
+  }
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc($spacing-md + env(safe-area-inset-bottom));
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  gap: $spacing-md;
+  z-index: 10;
+}
+
+.btn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-base;
+  
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+.btnSecondary {
+  background: $color-bg-hover;
+  color: $color-text-secondary;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+}
+
+.btnDisabled {
+  background: $color-bg-hover;
+  color: $color-text-disabled;
+}
