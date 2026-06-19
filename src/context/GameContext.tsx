@@ -76,8 +76,8 @@ interface GameContextValue {
   getTodayGames: () => Game[];
   getRecruitingGames: () => Game[];
   getAppliesByGame: (gameId: string, status?: ApplyStatus) => ApplyRecord[];
-  getUniqueDates: () => string[];
-  getUniqueGames: () => { id: string; name: string; date: string }[];
+  getUniqueDates: string[];
+  getUniqueGames: { id: string; name: string; date: string }[];
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -263,19 +263,109 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [applies]);
 
   const batchApprove = useCallback((applyIds: string[]) => {
-    const idsToProcess = applyIds.filter(id => applies.find(a => a.id === id)?.status === 'pending');
-    idsToProcess.forEach(id => approveApply(id));
-  }, [applies, approveApply]);
+    const idsToProcess = applyIds.filter(id => {
+      const a = applies.find(x => x.id === id);
+      return a && a.status === 'pending';
+    });
+    if (idsToProcess.length === 0) return;
+
+    const targetApplies = idsToProcess.map(id => applies.find(a => a.id === id)!).filter(Boolean);
+    const gameIdSet = new Set(targetApplies.map(a => a.gameId));
+
+    setApplies(prev => prev.map(a =>
+      idsToProcess.includes(a.id) ? { ...a, status: 'approved' as const } : a
+    ));
+
+    setTimeout(() => {
+      setGames(prevGames => {
+        const nextAppliesSnapshot = applies.map(a =>
+          idsToProcess.includes(a.id) ? { ...a, status: 'approved' as const } : a
+        );
+        return prevGames.map(g => {
+          if (!gameIdSet.has(g.id)) return g;
+          const appliesOfGame = targetApplies.filter(a => a.gameId === g.id);
+          let newPlayers = [...g.players];
+          appliesOfGame.forEach(apply => {
+            if (newPlayers.some(p => p.id === apply.player.id)) return;
+            const seatNum = apply.seatNumber;
+            let assignedSeat = seatNum;
+            const seatOccupied = assignedSeat ? newPlayers.some(p => p.seatNumber === assignedSeat) : true;
+            if (!assignedSeat || assignedSeat < 1 || assignedSeat > g.totalSeats || seatOccupied) {
+              const currentSeats = buildSeatsFromPlayers(g.totalSeats, newPlayers, []);
+              const availableIdx = currentSeats.findIndex(s => s.status === 'available');
+              assignedSeat = availableIdx >= 0 ? availableIdx + 1 : undefined;
+            }
+            if (assignedSeat) {
+              newPlayers.push({
+                ...apply.player,
+                phone: apply.phone || apply.player.phone,
+                seatNumber: assignedSeat
+              });
+            }
+          });
+          return buildGameAfterAppliesChange({ ...g, players: newPlayers }, nextAppliesSnapshot);
+        });
+      });
+    }, 0);
+  }, [applies]);
 
   const batchReject = useCallback((applyIds: string[]) => {
-    const idsToProcess = applyIds.filter(id => applies.find(a => a.id === id)?.status === 'pending');
-    idsToProcess.forEach(id => rejectApply(id));
-  }, [applies, rejectApply]);
+    const idsToProcess = applyIds.filter(id => {
+      const a = applies.find(x => x.id === id);
+      return a && a.status === 'pending';
+    });
+    if (idsToProcess.length === 0) return;
+
+    setApplies(prev => prev.map(a =>
+      idsToProcess.includes(a.id) ? { ...a, status: 'rejected' as const } : a
+    ));
+
+    setTimeout(() => {
+      setGames(prevGames => {
+        const nextAppliesSnapshot = applies.map(a =>
+          idsToProcess.includes(a.id) ? { ...a, status: 'rejected' as const } : a
+        );
+        return prevGames.map(g => buildGameAfterAppliesChange(g, nextAppliesSnapshot));
+      });
+    }, 0);
+  }, [applies]);
 
   const batchWaitlist = useCallback((applyIds: string[]) => {
-    const idsToProcess = applyIds.filter(id => applies.find(a => a.id === id)?.status === 'pending');
-    idsToProcess.forEach(id => waitlistApply(id));
-  }, [applies, waitlistApply]);
+    const idsToProcess = applyIds.filter(id => {
+      const a = applies.find(x => x.id === id);
+      return a && a.status === 'pending';
+    });
+    if (idsToProcess.length === 0) return;
+
+    const targetApplies = idsToProcess.map(id => applies.find(a => a.id === id)!).filter(Boolean);
+    const gameIdSet = new Set(targetApplies.map(a => a.gameId));
+
+    setApplies(prev => prev.map(a =>
+      idsToProcess.includes(a.id) ? { ...a, status: 'waitlist' as const } : a
+    ));
+
+    setTimeout(() => {
+      setGames(prevGames => {
+        const nextAppliesSnapshot = applies.map(a =>
+          idsToProcess.includes(a.id) ? { ...a, status: 'waitlist' as const } : a
+        );
+        return prevGames.map(g => {
+          if (!gameIdSet.has(g.id)) return g;
+          const appliesOfGame = targetApplies.filter(a => a.gameId === g.id);
+          let newWaitlist = [...g.waitlist];
+          appliesOfGame.forEach(apply => {
+            if (g.players.some(p => p.id === apply.player.id)) return;
+            if (newWaitlist.some(p => p.id === apply.player.id)) return;
+            newWaitlist.push({
+              ...apply.player,
+              phone: apply.phone || apply.player.phone
+            });
+          });
+          return buildGameAfterAppliesChange({ ...g, waitlist: newWaitlist }, nextAppliesSnapshot);
+        });
+      });
+    }, 0);
+  }, [applies]);
 
   const checkIn = useCallback((playerId: string) => {
     setCheckedPlayerIds(prev => {
@@ -291,10 +381,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!player) return g;
       const alreadyInPlayers = g.players.some(p => p.id === playerId);
       if (alreadyInPlayers) return g;
+      const isFull = g.players.length >= g.totalSeats;
+      if (isFull) return g;
 
       const currentSeats = buildSeatsFromPlayers(g.totalSeats, g.players, []);
       const availableIdx = currentSeats.findIndex(s => s.status === 'available');
       const assignedSeat = availableIdx >= 0 ? availableIdx + 1 : undefined;
+      if (!assignedSeat) return g;
+
       const playerWithSeat: Player = {
         ...player,
         seatNumber: assignedSeat
@@ -341,16 +435,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [applies]);
 
   const getUniqueDates = useMemo(() => {
-    const dateSet = new Set(games.map(g => g.date));
+    const dateSet = new Set<string>();
     applies.forEach(a => {
-      if (a.applyTime) dateSet.add(a.applyTime.slice(0, 10));
+      const g = games.find(x => x.id === a.gameId);
+      if (g) dateSet.add(g.date);
     });
     return Array.from(dateSet).sort();
   }, [games, applies]);
 
   const getUniqueGames = useMemo(() => {
-    return games.map(g => ({ id: g.id, name: g.name, date: g.date }));
-  }, [games]);
+    const gameIds = new Set(applies.map(a => a.gameId));
+    return games.filter(g => gameIds.has(g.id)).map(g => ({ id: g.id, name: g.name, date: g.date }));
+  }, [games, applies]);
 
   const value: GameContextValue = {
     games,
