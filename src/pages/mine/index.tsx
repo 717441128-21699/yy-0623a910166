@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
-import { mockGames } from '@/data/mockData';
+import { useGameContext } from '@/context/GameContext';
 
 const MinePage: React.FC = () => {
+  const { games } = useGameContext();
+
   const menuItems = [
     { icon: '🏪', text: '门店设置', onClick: () => Taro.showToast({ title: '功能开发中', icon: 'none' }) },
     { icon: '👥', text: '玩家管理', onClick: () => Taro.showToast({ title: '功能开发中', icon: 'none' }) },
@@ -13,9 +15,9 @@ const MinePage: React.FC = () => {
     { icon: '⚙️', text: '系统设置', onClick: () => Taro.showToast({ title: '功能开发中', icon: 'none' }) }
   ];
 
-  const totalGames = mockGames.length;
-  const totalPlayers = mockGames.reduce((sum, g) => sum + g.players.length, 0);
-  const totalRevenue = mockGames.reduce((sum, g) => sum + g.filledSeats * g.price, 0);
+  const totalGames = games.length;
+  const totalPlayers = games.reduce((sum, g) => sum + g.players.length, 0);
+  const totalRevenue = games.reduce((sum, g) => sum + g.filledSeats * g.price, 0);
 
   return (
     <View className={styles.container}>

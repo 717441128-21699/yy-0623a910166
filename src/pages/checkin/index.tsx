@@ -4,17 +4,19 @@ import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
 import classnames from 'classnames';
 import EmptyState from '@/components/EmptyState';
-import StatusBadge from '@/components/StatusBadge';
-import { getTodayGames, mockGames } from '@/data/mockData';
-import { Game, Player } from '@/types/game';
+import { useGameContext } from '@/context/GameContext';
 
 const CheckinPage: React.FC = () => {
+  const { games, getTodayGames, checkIn, promoteFromWaitlist, checkedPlayerIds } = useGameContext();
   const [activeTab, setActiveTab] = useState<'today' | 'all'>('today');
-  const [checkedPlayers, setCheckedPlayers] = useState<string[]>(['p1', 'p2']);
 
-  const games = activeTab === 'today' ? getTodayGames() : mockGames;
+  const displayGames = activeTab === 'today' ? getTodayGames() : games;
 
   const handleCheckIn = (playerId: string) => {
+    if (checkedPlayerIds.includes(playerId)) {
+      Taro.showToast({ title: '该玩家已签到', icon: 'none' });
+      return;
+    }
     Taro.showModal({
       title: '确认签到',
       content: '确认该玩家已到店？',
@@ -22,21 +24,22 @@ const CheckinPage: React.FC = () => {
       confirmColor: '#7B2CBF',
       success: (res) => {
         if (res.confirm) {
-          setCheckedPlayers(prev => [...prev, playerId]);
+          checkIn(playerId);
           Taro.showToast({ title: '签到成功', icon: 'success' });
         }
       }
     });
   };
 
-  const handlePromote = (player: Player, game: Game) => {
+  const handlePromote = (gameId: string, playerId: string, playerName: string, gameName: string) => {
     Taro.showModal({
       title: '候补补位',
-      content: `是否将 ${player.name} 补位到 ${game.name}？`,
+      content: `是否将 ${playerName} 补位到 ${gameName}？`,
       confirmText: '确认补位',
       confirmColor: '#E6B42F',
       success: (res) => {
         if (res.confirm) {
+          promoteFromWaitlist(gameId, playerId);
           Taro.showToast({ title: '补位成功', icon: 'success' });
         }
       }
@@ -66,8 +69,8 @@ const CheckinPage: React.FC = () => {
       </View>
 
       <View className={styles.list}>
-        {games.length > 0 ? (
-          games.map(game => (
+        {displayGames.length > 0 ? (
+          displayGames.map(game => (
             <View key={game.id} className={styles.gameCard}>
               <View className={styles.gameHeader}>
                 <View className={styles.gameInfo}>
@@ -98,7 +101,7 @@ const CheckinPage: React.FC = () => {
                       </View>
                     </View>
                     <View className={styles.status}>
-                      {checkedPlayers.includes(player.id) ? (
+                      {checkedPlayerIds.includes(player.id) ? (
                         <Text className={styles.checked}>✓ 已签到</Text>
                       ) : (
                         <View 
@@ -135,7 +138,7 @@ const CheckinPage: React.FC = () => {
                         </View>
                         <View 
                           className={styles.promoteBtn}
-                          onClick={() => handlePromote(player, game)}
+                          onClick={() => handlePromote(game.id, player.id, player.name, game.name)}
                         >
                           <Text>补位</Text>
                         </View>
@@ -151,7 +154,7 @@ const CheckinPage: React.FC = () => {
                   <Text className={styles.label}>总人数</Text>
                 </View>
                 <View className={styles.summaryItem}>
-                  <Text className={styles.num}>{checkedPlayers.filter(id => game.players.some(p => p.id === id)).length}</Text>
+                  <Text className={styles.num}>{checkedPlayerIds.filter(id => game.players.some(p => p.id === id)).length}</Text>
                   <Text className={styles.label}>已签到</Text>
                 </View>
                 <View className={styles.summaryItem}>

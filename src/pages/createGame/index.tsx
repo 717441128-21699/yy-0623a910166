@@ -3,8 +3,10 @@ import { View, Text, Input, Textarea } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
 import classnames from 'classnames';
+import { useGameContext } from '@/context/GameContext';
 
 const CreateGamePage: React.FC = () => {
+  const { addGame } = useGameContext();
   const [formData, setFormData] = useState({
     name: '',
     type: 'city' as 'city' | 'limited' | 'normal',
@@ -80,6 +82,26 @@ const CreateGamePage: React.FC = () => {
       confirmColor: '#7B2CBF',
       success: (res) => {
         if (res.confirm) {
+          const typeLabel = formData.type === 'city' ? '城限' : formData.type === 'limited' ? '独家' : '盒装';
+          const newGame = addGame({
+            name: formData.name,
+            city: formData.city || '未设定',
+            type: formData.type,
+            date: formData.date,
+            time: formData.time,
+            dm: formData.dm,
+            duration: Number(formData.duration) || 5,
+            price: Number(formData.price),
+            totalSeats: Number(formData.totalSeats) || 6,
+            playerConfig: formData.playerConfig || '待定',
+            warnings: formData.warnings || '',
+            acceptNewbie: formData.acceptNewbie,
+            needAcquaintance: formData.needAcquaintance,
+            address: '上海市静安区南京西路1266号恒隆广场2楼',
+            depositAmount: Number(formData.depositAmount) || 50,
+            tags: [typeLabel]
+          });
+
           Taro.showToast({ title: '创建成功', icon: 'success' });
           setTimeout(() => {
             Taro.navigateBack();

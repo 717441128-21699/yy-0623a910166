@@ -1,39 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image } from '@tarojs/components';
-import Taro, { useRouter } from '@tarojs/taro';
+import React from 'react';
+import { View, Text, Image, Button } from '@tarojs/components';
+import Taro, { useRouter, useShareAppMessage } from '@tarojs/taro';
 import styles from './index.module.scss';
 import classnames from 'classnames';
 import StatusBadge from '@/components/StatusBadge';
-import { mockGames } from '@/data/mockData';
-import { Game } from '@/types/game';
+import { useGameContext } from '@/context/GameContext';
 
 const GameDetailPage: React.FC = () => {
   const router = useRouter();
   const gameId = router.params.id;
-  const [game, setGame] = useState<Game | null>(null);
+  const { getGame } = useGameContext();
+  const game = getGame(gameId);
 
-  useEffect(() => {
-    const found = mockGames.find(g => g.id === gameId);
-    if (found) {
-      setGame(found);
-      Taro.setNavigationBarTitle({ title: found.name });
+  useShareAppMessage(() => {
+    if (!game) {
+      return {
+        title: '剧本站 - 限定车队招募',
+        path: '/pages/home/index'
+      };
     }
-  }, [gameId]);
+    return {
+      title: `【${game.tags[0] || '招募'}】${game.name} - ${game.date} ${game.time}`,
+      path: `/pages/gameDetail/index?id=${game.id}`,
+      imageUrl: game.cover
+    };
+  });
 
   if (!game) {
     return (
       <View className={styles.container}>
-        <Text>加载中...</Text>
+        <Text>该车队不存在</Text>
       </View>
     );
   }
 
   const remainingSeats = game.totalSeats - game.filledSeats;
   const isFull = game.status === 'full' || game.status === 'ongoing' || game.status === 'finished';
-
-  const handleShare = () => {
-    Taro.showToast({ title: '已生成招募卡片', icon: 'success' });
-  };
 
   const handleApply = () => {
     Taro.navigateTo({
@@ -52,9 +54,9 @@ const GameDetailPage: React.FC = () => {
           <StatusBadge status={game.status} size="md" />
         </View>
         
-        <View className={styles.shareBtn} onClick={handleShare}>
+        <Button className={styles.shareBtn} openType="share">
           <Text>📤 分享招募</Text>
-        </View>
+        </Button>
       </View>
 
       <View className={styles.content}>
@@ -110,7 +112,7 @@ const GameDetailPage: React.FC = () => {
                 <Text className={styles.playerName}>{player.name}</Text>
               </View>
             ))}
-            {Array(remainingSeats).fill(0).map((_, idx) => (
+            {Array(Math.max(0, remainingSeats)).fill(0).map((_, idx) => (
               <View key={`empty-${idx}`} className={styles.playerItem}>
                 <View className={styles.emptySeat}>
                   <Text>虚位</Text>
@@ -188,9 +190,9 @@ const GameDetailPage: React.FC = () => {
       </View>
 
       <View className={styles.bottomBar}>
-        <View className={classnames(styles.btn, styles.btnSecondary)} onClick={handleShare}>
+        <Button className={classnames(styles.btn, styles.btnSecondary)} openType="share">
           <Text>📤 分享招募</Text>
-        </View>
+        </Button>
         <View 
           className={classnames(
             styles.btn, 

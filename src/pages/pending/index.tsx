@@ -1,15 +1,25 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
 import classnames from 'classnames';
 import EmptyState from '@/components/EmptyState';
 import StatusBadge from '@/components/StatusBadge';
-import { getReviewItems, mockPendingApplies } from '@/data/mockData';
+import { useGameContext } from '@/context/GameContext';
 import { ApplyRecord, Game, ReviewItem } from '@/types/game';
 
 const PendingPage: React.FC = () => {
-  const [reviewItems, setReviewItems] = useState<ReviewItem[]>(getReviewItems());
+  const { applies, games, approveApply, rejectApply } = useGameContext();
+
+  const reviewItems: ReviewItem[] = useMemo(() => {
+    return applies
+      .filter(a => a.status === 'pending')
+      .map(apply => ({
+        apply,
+        game: games.find(g => g.id === apply.gameId)!
+      }))
+      .filter(item => !!item.game);
+  }, [applies, games]);
 
   const handleApprove = (applyId: string) => {
     Taro.showModal({
@@ -19,7 +29,7 @@ const PendingPage: React.FC = () => {
       confirmColor: '#7B2CBF',
       success: (res) => {
         if (res.confirm) {
-          setReviewItems(prev => prev.filter(item => item.apply.id !== applyId));
+          approveApply(applyId);
           Taro.showToast({ title: '已通过，通知已发送', icon: 'success' });
         }
       }
@@ -29,8 +39,8 @@ const PendingPage: React.FC = () => {
   const handleReject = (applyId: string) => {
     Taro.showActionSheet({
       itemList: ['风格不匹配', '场次已满', '玩家经验不足', '其他原因'],
-      success: (res) => {
-        setReviewItems(prev => prev.filter(item => item.apply.id !== applyId));
+      success: () => {
+        rejectApply(applyId);
         Taro.showToast({ title: '已婉拒', icon: 'success' });
       }
     });

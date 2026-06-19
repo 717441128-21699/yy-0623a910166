@@ -42,13 +42,19 @@
   @include button-reset;
   height: $button-height-md;
   padding: 0 $spacing-lg;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.9) !important;
   border-radius: $radius-button;
   font-size: $font-size-sm;
   color: $color-primary;
+  line-height: $button-height-md;
+  border: none !important;
+  
+  &::after {
+    border: none;
+  }
   
   &:active {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.7) !important;
   }
 }
 
@@ -265,6 +271,13 @@
   font-size: $font-size-md;
   font-weight: $font-weight-semibold;
   transition: all $transition-base;
+  text-align: center;
+  line-height: $button-height-lg;
+  border: none !important;
+  
+  &::after {
+    border: none;
+  }
   
   &:active {
     transform: scale(0.98);

@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, Input, Textarea } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import styles from './index.module.scss';
 import classnames from 'classnames';
-import { mockGames } from '@/data/mockData';
-import { Game } from '@/types/game';
+import { useGameContext } from '@/context/GameContext';
 
 const roleOptions = ['男性角色', '女性角色', '都可以', 'C位角色', '边缘角色'];
 const seatOptions = ['随便坐', '靠边坐', '中间位置', '靠近DM', '远离DM'];
@@ -12,8 +11,9 @@ const seatOptions = ['随便坐', '靠边坐', '中间位置', '靠近DM', '远�
 const PlayerApplyPage: React.FC = () => {
   const router = useRouter();
   const gameId = router.params.gameId;
-  
-  const [game, setGame] = useState<Game | null>(null);
+  const { getGame, addApply } = useGameContext();
+  const game = getGame(gameId);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -21,13 +21,6 @@ const PlayerApplyPage: React.FC = () => {
     seatPreference: '随便坐',
     message: ''
   });
-
-  useEffect(() => {
-    const found = mockGames.find(g => g.id === gameId);
-    if (found) {
-      setGame(found);
-    }
-  }, [gameId]);
 
   if (!game) {
     return (
@@ -69,6 +62,22 @@ const PlayerApplyPage: React.FC = () => {
       confirmColor: '#7B2CBF',
       success: (res) => {
         if (res.confirm) {
+          const playerId = `player_${Date.now()}`;
+          addApply({
+            gameId: game.id,
+            player: {
+              id: playerId,
+              name: formData.name,
+              avatar: `https://picsum.photos/id/${Math.floor(Math.random() * 1000) + 1}/200/200`,
+              tags: [formData.rolePreference, formData.seatPreference],
+              gender: 'unknown',
+              experience: 'normal'
+            },
+            rolePreference: formData.rolePreference,
+            seatPreference: formData.seatPreference,
+            message: formData.message
+          });
+
           Taro.showToast({ title: '报名成功', icon: 'success' });
           setTimeout(() => {
             Taro.navigateBack();
@@ -77,6 +86,8 @@ const PlayerApplyPage: React.FC = () => {
       }
     });
   };
+
+  const remainingSeats = game.totalSeats - game.filledSeats;
 
   return (
     <View className={styles.container}>
@@ -88,7 +99,7 @@ const PlayerApplyPage: React.FC = () => {
             {game.date} {game.time} · {game.dm}
           </Text>
           <Text className={styles.gameMeta}>
-            {game.playerConfig} · 剩余{game.totalSeats - game.filledSeats}位
+            {game.playerConfig} · 剩余{remainingSeats}位
           </Text>
           <Text className={styles.price}>¥{game.price}</Text>
         </View>

@@ -1,29 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import styles from './index.module.scss';
-import { mockGames, mockPendingApplies } from '@/data/mockData';
-import { Game, ApplyRecord } from '@/types/game';
+import { useGameContext } from '@/context/GameContext';
 
 const ReviewApplyPage: React.FC = () => {
   const router = useRouter();
   const applyId = router.params.applyId;
   const gameId = router.params.gameId;
   
-  const [apply, setApply] = useState<ApplyRecord | null>(null);
-  const [game, setGame] = useState<Game | null>(null);
-
-  useEffect(() => {
-    const foundApply = mockPendingApplies.find(a => a.id === applyId);
-    const foundGame = mockGames.find(g => g.id === gameId);
-    if (foundApply) setApply(foundApply);
-    if (foundGame) setGame(foundGame);
-  }, [applyId, gameId]);
+  const { getApply, getGame, approveApply, rejectApply } = useGameContext();
+  const apply = getApply(applyId);
+  const game = getGame(gameId);
 
   if (!apply || !game) {
     return (
       <View className={styles.container}>
-        <Text>加载中...</Text>
+        <Text>该报名不存在或已处理</Text>
       </View>
     );
   }
@@ -36,6 +29,7 @@ const ReviewApplyPage: React.FC = () => {
       confirmColor: '#7B2CBF',
       success: (res) => {
         if (res.confirm) {
+          approveApply(applyId);
           Taro.showToast({ title: '已通过', icon: 'success' });
           setTimeout(() => {
             Taro.navigateBack();
@@ -49,6 +43,7 @@ const ReviewApplyPage: React.FC = () => {
     Taro.showActionSheet({
       itemList: ['风格不匹配', '场次已满', '玩家经验不足', '其他原因'],
       success: () => {
+        rejectApply(applyId);
         Taro.showToast({ title: '已婉拒', icon: 'success' });
         setTimeout(() => {
           Taro.navigateBack();

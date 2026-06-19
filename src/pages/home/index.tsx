@@ -1,14 +1,15 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView } from '@tarojs/components';
+import React, { useState, useMemo } from 'react';
+import { View, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import styles from './index.module.scss';
 import classnames from 'classnames';
 import GameCard from '@/components/GameCard';
 import EmptyState from '@/components/EmptyState';
-import { mockGames, getRecruitingGames, getTodayGames } from '@/data/mockData';
+import { useGameContext } from '@/context/GameContext';
 import { TabKey } from '@/types/game';
 
 const HomePage: React.FC = () => {
+  const { games, getRecruitingGames, getTodayGames } = useGameContext();
   const [activeTab, setActiveTab] = useState<TabKey>('recruiting');
 
   const handleCreate = () => {
@@ -17,33 +18,21 @@ const HomePage: React.FC = () => {
     });
   };
 
-  const handleTabChange = (tab: TabKey) => {
-    setActiveTab(tab);
-  };
-
-  const getGames = useCallback(() => {
+  const gamesList = useMemo(() => {
     switch (activeTab) {
       case 'recruiting':
         return getRecruitingGames();
       case 'today':
         return getTodayGames();
       case 'all':
-        return mockGames;
+        return games;
       default:
         return [];
     }
-  }, [activeTab]);
+  }, [activeTab, games, getRecruitingGames, getTodayGames]);
 
-  const games = getGames();
   const recruitingCount = getRecruitingGames().length;
   const todayCount = getTodayGames().length;
-
-  const onPullDownRefresh = () => {
-    setTimeout(() => {
-      Taro.stopPullDownRefresh();
-      Taro.showToast({ title: '刷新成功', icon: 'success' });
-    }, 1000);
-  };
 
   return (
     <View className={styles.container}>
@@ -64,7 +53,7 @@ const HomePage: React.FC = () => {
             <Text className={styles.label}>今日场次</Text>
           </View>
           <View className={styles.statItem}>
-            <Text className={styles.number}>{mockGames.length}</Text>
+            <Text className={styles.number}>{games.length}</Text>
             <Text className={styles.label}>全部车队</Text>
           </View>
         </View>
@@ -73,27 +62,27 @@ const HomePage: React.FC = () => {
       <View className={styles.tabs}>
         <View 
           className={classnames(styles.tabItem, activeTab === 'recruiting' && styles.active)}
-          onClick={() => handleTabChange('recruiting')}
+          onClick={() => setActiveTab('recruiting')}
         >
           <Text>招募中</Text>
         </View>
         <View 
           className={classnames(styles.tabItem, activeTab === 'today' && styles.active)}
-          onClick={() => handleTabChange('today')}
+          onClick={() => setActiveTab('today')}
         >
           <Text>今日场</Text>
         </View>
         <View 
           className={classnames(styles.tabItem, activeTab === 'all' && styles.active)}
-          onClick={() => handleTabChange('all')}
+          onClick={() => setActiveTab('all')}
         >
           <Text>全部</Text>
         </View>
       </View>
 
       <View className={styles.list}>
-        {games.length > 0 ? (
-          games.map(game => (
+        {gamesList.length > 0 ? (
+          gamesList.map(game => (
             <GameCard key={game.id} game={game} />
           ))
         ) : (
