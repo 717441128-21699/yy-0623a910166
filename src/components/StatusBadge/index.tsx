@@ -4,7 +4,7 @@ import styles from './index.module.scss';
 import classnames from 'classnames';
 
 interface StatusBadgeProps {
-  status: 'recruiting' | 'full' | 'ongoing' | 'finished' | 'pending' | 'approved' | 'rejected' | 'city' | 'limited' | 'normal';
+  status: 'recruiting' | 'full' | 'ongoing' | 'finished' | 'pending' | 'approved' | 'rejected' | 'waitlist' | 'city' | 'limited' | 'normal';
   text?: string;
   size?: 'sm' | 'md';
 }
@@ -17,6 +17,7 @@ const statusMap = {
   pending: { text: '待审核', type: 'warning' },
   approved: { text: '已通过', type: 'success' },
   rejected: { text: '已婉拒', type: 'error' },
+  waitlist: { text: '已候补', type: 'info' },
   city: { text: '城限', type: 'gold' },
   limited: { text: '独家', type: 'gold' },
   normal: { text: '盒装', type: 'default' }

@@ -56,6 +56,13 @@
     }
   }
   
+  &.info {
+    background: rgba(22, 119, 255, 0.1);
+    .text {
+      color: #1677FF;
+    }
+  }
+  
   &.gold {
     background: linear-gradient(135deg, $color-gold 0%, $color-gold-light 100%);
     .text {

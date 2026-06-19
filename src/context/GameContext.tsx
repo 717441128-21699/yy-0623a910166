@@ -3,9 +3,9 @@ import Taro from '@tarojs/taro';
 import { Game, ApplyRecord, Player, Seat, ApplyStatus } from '@/types/game';
 import { mockGames, mockPendingApplies } from '@/data/mockData';
 
-const STORAGE_GAMES = 'juben_games_v2';
-const STORAGE_APPLIES = 'juben_applies_v2';
-const STORAGE_CHECKED = 'juben_checked_v2';
+const STORAGE_GAMES = 'juben_games_v3';
+const STORAGE_APPLIES = 'juben_applies_v3';
+const STORAGE_CHECKED = 'juben_checked_v3';
 
 function loadStorage<T>(key: string, fallback: T): T {
   try {
@@ -64,8 +64,10 @@ interface GameContextValue {
   addApply: (apply: Omit<ApplyRecord, 'id' | 'status' | 'applyTime' | 'depositPaid' | 'checkedIn'>) => void;
   approveApply: (applyId: string) => void;
   rejectApply: (applyId: string) => void;
+  waitlistApply: (applyId: string) => void;
   batchApprove: (applyIds: string[]) => void;
   batchReject: (applyIds: string[]) => void;
+  batchWaitlist: (applyIds: string[]) => void;
   checkIn: (playerId: string) => void;
   promoteFromWaitlist: (gameId: string, playerId: string) => void;
   getGame: (gameId: string) => Game | undefined;
@@ -102,6 +104,24 @@ function nextId(prefix: string) {
   return `${prefix}_${++idCounter}`;
 }
 
+function deriveGameStatus(playersLen: number, totalSeats: number, currentStatus: Game['status']): Game['status'] {
+  if (currentStatus === 'ongoing' || currentStatus === 'finished') return currentStatus;
+  return playersLen >= totalSeats ? 'full' : 'recruiting';
+}
+
+function buildGameAfterAppliesChange(game: Game, allApplies: ApplyRecord[]): Game {
+  const pendingOfGame = allApplies.filter(a => a.gameId === game.id && a.status === 'pending' && a.seatNumber);
+  const pendingSeatNums = pendingOfGame.map(a => a.seatNumber!).filter(Boolean);
+  const filledSeats = game.players.length;
+  const status = deriveGameStatus(filledSeats, game.totalSeats, game.status);
+  return {
+    ...game,
+    filledSeats,
+    status,
+    seats: buildSeatsFromPlayers(game.totalSeats, game.players, pendingSeatNums)
+  };
+}
+
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [games, setGames] = useState<Game[]>(() => loadStorage(STORAGE_GAMES, mockGames));
   const [applies, setApplies] = useState<ApplyRecord[]>(() => loadStorage(STORAGE_APPLIES, mockPendingApplies));
@@ -111,13 +131,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => { saveStorage(STORAGE_APPLIES, applies); }, [applies]);
   useEffect(() => { saveStorage(STORAGE_CHECKED, checkedPlayerIds); }, [checkedPlayerIds]);
 
-  const rebuildGameSeats = useCallback((game: Game, allApplies: ApplyRecord[]): Game => {
-    const pendingOfGame = allApplies.filter(a => a.gameId === game.id && a.status === 'pending' && a.seatNumber);
-    const pendingSeatNums = pendingOfGame.map(a => a.seatNumber!).filter(Boolean);
-    return {
-      ...game,
-      seats: buildSeatsFromPlayers(game.totalSeats, game.players, pendingSeatNums)
-    };
+  const refreshGamesAfterApplies = useCallback((nextApplies: ApplyRecord[]) => {
+    setGames(prev => prev.map(g => buildGameAfterAppliesChange(g, nextApplies)));
   }, []);
 
   const addGame = useCallback((input: Omit<Game, 'id' | 'players' | 'waitlist' | 'filledSeats' | 'status' | 'cover' | 'seats'>): Game => {
@@ -155,112 +170,112 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       phone: input.phone || input.player.phone
     };
 
-    setApplies(prev => [...prev, newApply]);
-
-    setGames(prev => prev.map(g => {
-      if (g.id !== input.gameId) return g;
-      const remaining = g.totalSeats - g.filledSeats;
-      if (remaining > 0) {
-        const newFilled = g.filledSeats + 1;
-        const newStatus: Game['status'] = newFilled >= g.totalSeats ? 'full' : 'recruiting';
-        const updatedGame = { ...g, filledSeats: newFilled, status: newStatus };
-        const allPending = [...applies, newApply].filter(a => a.gameId === g.id && a.status === 'pending' && a.seatNumber);
-        const pendingSeatNums = allPending.map(a => a.seatNumber!).filter(Boolean);
-        return {
-          ...updatedGame,
-          seats: buildSeatsFromPlayers(g.totalSeats, g.players, pendingSeatNums)
-        };
-      }
-      return g;
-    }));
-  }, [applies]);
+    setApplies(prev => {
+      const next = [...prev, newApply];
+      setTimeout(() => refreshGamesAfterApplies(next), 0);
+      return next;
+    });
+  }, [refreshGamesAfterApplies]);
 
   const approveApply = useCallback((applyId: string) => {
-    const targetApply = applies.find(a => a.id === applyId);
-    if (!targetApply || targetApply.status !== 'pending') return;
+    let targetApply: ApplyRecord | undefined;
+    setApplies(prev => {
+      targetApply = prev.find(a => a.id === applyId);
+      if (!targetApply || targetApply.status !== 'pending') return prev;
+      return prev.map(a => a.id === applyId ? { ...a, status: 'approved' as const } : a);
+    });
 
-    setApplies(prev => prev.map(a =>
-      a.id === applyId ? { ...a, status: 'approved' as const } : a
-    ));
-
-    setGames(prev => prev.map(g => {
-      if (g.id !== targetApply.gameId) return g;
-      const alreadyIn = g.players.some(p => p.id === targetApply.player.id);
-      if (alreadyIn) return g;
-
-      const seatNum = targetApply.seatNumber;
-      let assignedSeat = seatNum;
-      if (!assignedSeat || assignedSeat < 1 || assignedSeat > g.totalSeats || g.players.some(p => p.seatNumber === assignedSeat)) {
-        const availableIdx = g.seats.findIndex(s => s.status === 'available');
-        assignedSeat = availableIdx >= 0 ? availableIdx + 1 : undefined;
-      }
-
-      const playerWithSeat: Player = {
-        ...targetApply.player,
-        phone: targetApply.phone || targetApply.player.phone,
-        seatNumber: assignedSeat
-      };
-
-      const newPlayers = [...g.players, playerWithSeat];
-      const remainingPending = applies.filter(a =>
-        a.gameId === g.id && a.status === 'pending' && a.seatNumber && a.id !== applyId
-      );
-      const pendingSeatNums = remainingPending.map(a => a.seatNumber!).filter(Boolean);
-
-      return {
-        ...g,
-        players: newPlayers,
-        seats: buildSeatsFromPlayers(g.totalSeats, newPlayers, pendingSeatNums),
-        status: newPlayers.length >= g.totalSeats ? 'full' : g.status
-      };
-    }));
+    setTimeout(() => {
+      if (!targetApply || targetApply.status !== 'pending') return;
+      setGames(prevGames => {
+        const nextAppliesSnapshot = applies.map(a => a.id === applyId ? { ...a, status: 'approved' as const } : a);
+        return prevGames.map(g => {
+          if (g.id !== targetApply!.gameId) return g;
+          const alreadyIn = g.players.some(p => p.id === targetApply!.player.id);
+          let newPlayers = g.players;
+          if (!alreadyIn) {
+            const seatNum = targetApply!.seatNumber;
+            let assignedSeat = seatNum;
+            const seatOccupied = assignedSeat ? g.players.some(p => p.seatNumber === assignedSeat) : true;
+            if (!assignedSeat || assignedSeat < 1 || assignedSeat > g.totalSeats || seatOccupied) {
+              const currentSeats = buildSeatsFromPlayers(g.totalSeats, g.players, []);
+              const availableIdx = currentSeats.findIndex(s => s.status === 'available');
+              assignedSeat = availableIdx >= 0 ? availableIdx + 1 : undefined;
+            }
+            const playerWithSeat: Player = {
+              ...targetApply!.player,
+              phone: targetApply!.phone || targetApply!.player.phone,
+              seatNumber: assignedSeat
+            };
+            newPlayers = [...g.players, playerWithSeat];
+          }
+          return buildGameAfterAppliesChange({ ...g, players: newPlayers }, nextAppliesSnapshot);
+        });
+      });
+    }, 0);
   }, [applies]);
 
   const rejectApply = useCallback((applyId: string) => {
-    const targetApply = applies.find(a => a.id === applyId);
-    if (!targetApply || targetApply.status !== 'pending') return;
+    let targetApply: ApplyRecord | undefined;
+    setApplies(prev => {
+      targetApply = prev.find(a => a.id === applyId);
+      if (!targetApply || targetApply.status !== 'pending') return prev;
+      return prev.map(a => a.id === applyId ? { ...a, status: 'rejected' as const } : a);
+    });
+    setTimeout(() => {
+      if (!targetApply || targetApply.status !== 'pending') return;
+      setGames(prevGames => {
+        const nextAppliesSnapshot = applies.map(a => a.id === applyId ? { ...a, status: 'rejected' as const } : a);
+        return prevGames.map(g => {
+          if (g.id !== targetApply!.gameId) return g;
+          return buildGameAfterAppliesChange(g, nextAppliesSnapshot);
+        });
+      });
+    }, 0);
+  }, [applies]);
 
-    setApplies(prev => prev.map(a =>
-      a.id === applyId ? { ...a, status: 'rejected' as const } : a
-    ));
-
-    setGames(prev => prev.map(g => {
-      if (g.id !== targetApply.gameId) return g;
-      const wasFilled = g.status === 'full';
-      const newFilled = Math.max(g.players.length, g.filledSeats - 1);
-      const newStatus: Game['status'] = wasFilled && newFilled < g.totalSeats ? 'recruiting' : g.status;
-
-      const remainingPending = applies.filter(a =>
-        a.gameId === g.id && a.status === 'pending' && a.seatNumber && a.id !== applyId
-      );
-      const pendingSeatNums = remainingPending.map(a => a.seatNumber!).filter(Boolean);
-
-      return {
-        ...g,
-        filledSeats: newFilled,
-        status: newStatus,
-        seats: buildSeatsFromPlayers(g.totalSeats, g.players, pendingSeatNums)
-      };
-    }));
+  const waitlistApply = useCallback((applyId: string) => {
+    let targetApply: ApplyRecord | undefined;
+    setApplies(prev => {
+      targetApply = prev.find(a => a.id === applyId);
+      if (!targetApply || targetApply.status !== 'pending') return prev;
+      return prev.map(a => a.id === applyId ? { ...a, status: 'waitlist' as const } : a);
+    });
+    setTimeout(() => {
+      if (!targetApply || targetApply.status !== 'pending') return;
+      setGames(prevGames => {
+        const nextAppliesSnapshot = applies.map(a => a.id === applyId ? { ...a, status: 'waitlist' as const } : a);
+        return prevGames.map(g => {
+          if (g.id !== targetApply!.gameId) return g;
+          const alreadyInPlayers = g.players.some(p => p.id === targetApply!.player.id);
+          const alreadyInWaitlist = g.waitlist.some(p => p.id === targetApply!.player.id);
+          let newWaitlist = g.waitlist;
+          if (!alreadyInPlayers && !alreadyInWaitlist) {
+            newWaitlist = [...g.waitlist, {
+              ...targetApply!.player,
+              phone: targetApply!.phone || targetApply!.player.phone
+            }];
+          }
+          return buildGameAfterAppliesChange({ ...g, waitlist: newWaitlist }, nextAppliesSnapshot);
+        });
+      });
+    }, 0);
   }, [applies]);
 
   const batchApprove = useCallback((applyIds: string[]) => {
-    applyIds.forEach(id => {
-      const target = applies.find(a => a.id === id);
-      if (target && target.status === 'pending') {
-        approveApply(id);
-      }
-    });
+    const idsToProcess = applyIds.filter(id => applies.find(a => a.id === id)?.status === 'pending');
+    idsToProcess.forEach(id => approveApply(id));
   }, [applies, approveApply]);
 
   const batchReject = useCallback((applyIds: string[]) => {
-    applyIds.forEach(id => {
-      const target = applies.find(a => a.id === id);
-      if (target && target.status === 'pending') {
-        rejectApply(id);
-      }
-    });
+    const idsToProcess = applyIds.filter(id => applies.find(a => a.id === id)?.status === 'pending');
+    idsToProcess.forEach(id => rejectApply(id));
   }, [applies, rejectApply]);
+
+  const batchWaitlist = useCallback((applyIds: string[]) => {
+    const idsToProcess = applyIds.filter(id => applies.find(a => a.id === id)?.status === 'pending');
+    idsToProcess.forEach(id => waitlistApply(id));
+  }, [applies, waitlistApply]);
 
   const checkIn = useCallback((playerId: string) => {
     setCheckedPlayerIds(prev => {
@@ -277,7 +292,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const alreadyInPlayers = g.players.some(p => p.id === playerId);
       if (alreadyInPlayers) return g;
 
-      const availableIdx = g.seats.findIndex(s => s.status === 'available');
+      const currentSeats = buildSeatsFromPlayers(g.totalSeats, g.players, []);
+      const availableIdx = currentSeats.findIndex(s => s.status === 'available');
       const assignedSeat = availableIdx >= 0 ? availableIdx + 1 : undefined;
       const playerWithSeat: Player = {
         ...player,
@@ -287,16 +303,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newPlayers = [...g.players, playerWithSeat];
       const newWaitlist = g.waitlist.filter(p => p.id !== playerId);
 
-      return {
-        ...g,
-        players: newPlayers,
-        waitlist: newWaitlist,
-        filledSeats: newPlayers.length,
-        status: newPlayers.length >= g.totalSeats ? 'full' : g.status,
-        seats: buildSeatsFromPlayers(g.totalSeats, newPlayers, [])
-      };
+      return buildGameAfterAppliesChange(
+        { ...g, players: newPlayers, waitlist: newWaitlist },
+        applies
+      );
     }));
-  }, []);
+  }, [applies]);
 
   const getGame = useCallback((gameId: string) => {
     return games.find(g => g.id === gameId);
@@ -329,9 +341,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [applies]);
 
   const getUniqueDates = useMemo(() => {
-    const dates = new Set(games.map(g => g.date));
-    return Array.from(dates).sort();
-  }, [games]);
+    const dateSet = new Set(games.map(g => g.date));
+    applies.forEach(a => {
+      if (a.applyTime) dateSet.add(a.applyTime.slice(0, 10));
+    });
+    return Array.from(dateSet).sort();
+  }, [games, applies]);
 
   const getUniqueGames = useMemo(() => {
     return games.map(g => ({ id: g.id, name: g.name, date: g.date }));
@@ -345,8 +360,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addApply,
     approveApply,
     rejectApply,
+    waitlistApply,
     batchApprove,
     batchReject,
+    batchWaitlist,
     checkIn,
     promoteFromWaitlist,
     getGame,

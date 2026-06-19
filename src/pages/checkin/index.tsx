@@ -128,6 +128,7 @@ const CheckinPage: React.FC = () => {
                       <Text className={styles.sectionTitle}>座位图</Text>
                       <SeatMap 
                         seats={game.seats}
+                        players={game.players}
                         showPlayerName={true}
                         dmPosition="top"
                       />

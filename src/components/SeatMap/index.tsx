@@ -6,13 +6,25 @@ import { Seat, Player } from '@/types/game';
 
 interface SeatMapProps {
   seats: Seat[];
-  players: Player[];
+  players?: Player[];
   onSeatClick?: (seat: Seat) => void;
   selectedSeatNumber?: number;
   showLabels?: boolean;
+  showPlayerName?: boolean;
+  dmPosition?: 'top' | 'bottom';
 }
 
-const SeatMap: React.FC<SeatMapProps> = ({ seats, players, onSeatClick, selectedSeatNumber, showLabels = true }) => {
+const SeatMap: React.FC<SeatMapProps> = ({
+  seats,
+  players = [],
+  onSeatClick,
+  selectedSeatNumber,
+  showLabels = true,
+  showPlayerName,
+  dmPosition = 'top'
+}) => {
+  const shouldShowName = showPlayerName !== undefined ? showPlayerName : showLabels;
+
   const getPlayerBySeat = (seat: Seat): Player | undefined => {
     if (!seat.playerId) return undefined;
     return players.find(p => p.id === seat.playerId);
@@ -67,7 +79,7 @@ const SeatMap: React.FC<SeatMapProps> = ({ seats, players, onSeatClick, selected
                   }}
                 >
                   <Text className={styles.seatNum}>{seat.number}</Text>
-                  {showLabels && player && (
+                  {shouldShowName && player && (
                     <Text className={styles.seatName}>{player.name}</Text>
                   )}
                 </View>

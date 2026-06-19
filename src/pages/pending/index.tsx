@@ -12,21 +12,53 @@ const statusTabs: { key: ApplyStatus; label: string }[] = [
   { key: 'pending', label: '待审核' },
   { key: 'approved', label: '已通过' },
   { key: 'rejected', label: '已婉拒' },
+  { key: 'waitlist', label: '已候补' },
   { key: 'all', label: '全部' }
 ];
 
 const PendingPage: React.FC = () => {
-  const { applies, games, approveApply, rejectApply, batchApprove, batchReject } = useGameContext();
+  const {
+    applies, games, getUniqueDates, getUniqueGames,
+    approveApply, rejectApply, waitlistApply,
+    batchApprove, batchReject, batchWaitlist
+  } = useGameContext();
+
   const [activeStatus, setActiveStatus] = useState<ApplyStatus>('pending');
+  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [gameFilter, setGameFilter] = useState<string>('all');
   const [expandedGames, setExpandedGames] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const uniqueDates = useMemo(() => [
+    { value: 'all', label: '全部日期' },
+    ...getUniqueDates.map(d => ({ value: d, label: d }))
+  ], [getUniqueDates]);
+
+  const gameOptions = useMemo(() => {
+    const list = [{ value: 'all', label: '全部场次' }];
+    if (dateFilter !== 'all') {
+      getUniqueGames
+        .filter(g => g.date === dateFilter)
+        .forEach(g => list.push({ value: g.id, label: g.name }));
+    } else {
+      getUniqueGames.forEach(g => list.push({ value: g.id, label: `${g.date.slice(5)} ${g.name}` }));
+    }
+    return list;
+  }, [getUniqueGames, dateFilter]);
 
   const filteredApplies = useMemo(() => {
     return applies.filter(a => {
       if (activeStatus !== 'all' && a.status !== activeStatus) return false;
+      const g = games.find(x => x.id === a.gameId);
+      if (dateFilter !== 'all') {
+        if (!g || g.date !== dateFilter) return false;
+      }
+      if (gameFilter !== 'all') {
+        if (!g || g.id !== gameFilter) return false;
+      }
       return true;
     });
-  }, [applies, activeStatus]);
+  }, [applies, activeStatus, dateFilter, gameFilter, games]);
 
   const groupedByGame = useMemo(() => {
     const map = new Map<string, { game: Game; applies: ApplyRecord[] }>();
@@ -44,11 +76,8 @@ const PendingPage: React.FC = () => {
   const toggleGame = (gameId: string) => {
     setExpandedGames(prev => {
       const next = new Set(prev);
-      if (next.has(gameId)) {
-        next.delete(gameId);
-      } else {
-        next.add(gameId);
-      }
+      if (next.has(gameId)) next.delete(gameId);
+      else next.add(gameId);
       return next;
     });
   };
@@ -56,11 +85,8 @@ const PendingPage: React.FC = () => {
   const toggleSelect = (applyId: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
-      if (next.has(applyId)) {
-        next.delete(applyId);
-      } else {
-        next.add(applyId);
-      }
+      if (next.has(applyId)) next.delete(applyId);
+      else next.add(applyId);
       return next;
     });
   };
@@ -72,11 +98,8 @@ const PendingPage: React.FC = () => {
     const allSelected = applyIds.every(id => selectedIds.has(id));
     setSelectedIds(prev => {
       const next = new Set(prev);
-      if (allSelected) {
-        applyIds.forEach(id => next.delete(id));
-      } else {
-        applyIds.forEach(id => next.add(id));
-      }
+      if (allSelected) applyIds.forEach(id => next.delete(id));
+      else applyIds.forEach(id => next.add(id));
       return next;
     });
   };
@@ -90,11 +113,7 @@ const PendingPage: React.FC = () => {
       success: (res) => {
         if (res.confirm) {
           approveApply(applyId);
-          setSelectedIds(prev => {
-            const next = new Set(prev);
-            next.delete(applyId);
-            return next;
-          });
+          setSelectedIds(prev => { const n = new Set(prev); n.delete(applyId); return n; });
           Taro.showToast({ title: '已通过', icon: 'success' });
         }
       }
@@ -106,21 +125,30 @@ const PendingPage: React.FC = () => {
       itemList: ['风格不匹配', '场次已满', '玩家经验不足', '其他原因'],
       success: () => {
         rejectApply(applyId);
-        setSelectedIds(prev => {
-          const next = new Set(prev);
-          next.delete(applyId);
-          return next;
-        });
+        setSelectedIds(prev => { const n = new Set(prev); n.delete(applyId); return n; });
         Taro.showToast({ title: '已婉拒', icon: 'success' });
       }
     });
   };
 
+  const handleWaitlist = (applyId: string) => {
+    Taro.showModal({
+      title: '放入候补',
+      content: '玩家将进入候补名单，不占当前座位，有空位时可补位',
+      confirmText: '确认候补',
+      confirmColor: '#1677FF',
+      success: (res) => {
+        if (res.confirm) {
+          waitlistApply(applyId);
+          setSelectedIds(prev => { const n = new Set(prev); n.delete(applyId); return n; });
+          Taro.showToast({ title: '已放入候补', icon: 'success' });
+        }
+      }
+    });
+  };
+
   const handleBatchApprove = () => {
-    if (selectedIds.size === 0) {
-      Taro.showToast({ title: '请先选择报名', icon: 'none' });
-      return;
-    }
+    if (selectedIds.size === 0) return Taro.showToast({ title: '请先选择报名', icon: 'none' });
     Taro.showModal({
       title: '批量通过',
       content: `确认通过 ${selectedIds.size} 条报名？`,
@@ -137,10 +165,7 @@ const PendingPage: React.FC = () => {
   };
 
   const handleBatchReject = () => {
-    if (selectedIds.size === 0) {
-      Taro.showToast({ title: '请先选择报名', icon: 'none' });
-      return;
-    }
+    if (selectedIds.size === 0) return Taro.showToast({ title: '请先选择报名', icon: 'none' });
     Taro.showModal({
       title: '批量婉拒',
       content: `确认婉拒 ${selectedIds.size} 条报名？`,
@@ -151,6 +176,23 @@ const PendingPage: React.FC = () => {
           batchReject(Array.from(selectedIds));
           setSelectedIds(new Set());
           Taro.showToast({ title: '已批量婉拒', icon: 'success' });
+        }
+      }
+    });
+  };
+
+  const handleBatchWaitlist = () => {
+    if (selectedIds.size === 0) return Taro.showToast({ title: '请先选择报名', icon: 'none' });
+    Taro.showModal({
+      title: '批量放入候补',
+      content: `确认将 ${selectedIds.size} 条报名放入候补？`,
+      confirmText: '确认候补',
+      confirmColor: '#1677FF',
+      success: (res) => {
+        if (res.confirm) {
+          batchWaitlist(Array.from(selectedIds));
+          setSelectedIds(new Set());
+          Taro.showToast({ title: '已批量候补', icon: 'success' });
         }
       }
     });
@@ -178,11 +220,58 @@ const PendingPage: React.FC = () => {
           <View
             key={tab.key}
             className={classnames(styles.statusTab, activeStatus === tab.key && styles.active)}
-            onClick={() => setActiveStatus(tab.key)}
+            onClick={() => { setActiveStatus(tab.key); setSelectedIds(new Set()); }}
           >
             <Text>{tab.label}</Text>
           </View>
         ))}
+      </View>
+
+      <View className={styles.filters}>
+        <View className={styles.filterRow}>
+          <Text className={styles.filterLabel}>日期</Text>
+          <View className={styles.chipList}>
+            {uniqueDates.slice(0, 5).map(d => (
+              <View
+                key={d.value}
+                className={classnames(styles.chip, dateFilter === d.value && styles.chipActive)}
+                onClick={() => { setDateFilter(d.value); setGameFilter('all'); setSelectedIds(new Set()); }}
+              >
+                <Text>{d.label}</Text>
+              </View>
+            ))}
+            {uniqueDates.length > 5 && (
+              <View className={styles.chip} onClick={() => Taro.showActionSheet({
+                itemList: uniqueDates.map(d => d.label),
+                success: (r) => setDateFilter(uniqueDates[r.tapIndex].value)
+              })}>
+                <Text>更多</Text>
+              </View>
+            )}
+          </View>
+        </View>
+        <View className={styles.filterRow}>
+          <Text className={styles.filterLabel}>场次</Text>
+          <View className={styles.chipList}>
+            {gameOptions.slice(0, 5).map(o => (
+              <View
+                key={o.value}
+                className={classnames(styles.chip, styles.chipSecondary, gameFilter === o.value && styles.chipActive)}
+                onClick={() => { setGameFilter(o.value); setSelectedIds(new Set()); }}
+              >
+                <Text>{o.label}</Text>
+              </View>
+            ))}
+            {gameOptions.length > 5 && (
+              <View className={classnames(styles.chip, styles.chipSecondary)} onClick={() => Taro.showActionSheet({
+                itemList: gameOptions.map(o => o.label),
+                success: (r) => setGameFilter(gameOptions[r.tapIndex].value)
+              })}>
+                <Text>场次多</Text>
+              </View>
+            )}
+          </View>
+        </View>
       </View>
 
       <View className={styles.list}>
@@ -192,15 +281,8 @@ const PendingPage: React.FC = () => {
             const allSelected = gameApplies.every(a => selectedIds.has(a.id));
             return (
               <View key={game.id} className={styles.gameGroup}>
-                <View 
-                  className={styles.gameGroupHeader}
-                  onClick={() => toggleGame(game.id)}
-                >
-                  <View 
-                    className={styles.checkbox}
-                    catchTap
-                    onClick={() => toggleSelectAllOfGame(game.id)}
-                  >
+                <View className={styles.gameGroupHeader} onClick={() => toggleGame(game.id)}>
+                  <View className={styles.checkbox} catchTap onClick={() => toggleSelectAllOfGame(game.id)}>
                     <View className={classnames(styles.checkboxInner, allSelected && styles.checked)}>
                       {allSelected && <Text className={styles.checkIcon}>✓</Text>}
                     </View>
@@ -219,30 +301,16 @@ const PendingPage: React.FC = () => {
                     {gameApplies.map(apply => {
                       const isSelected = selectedIds.has(apply.id);
                       return (
-                        <View
-                          key={apply.id}
-                          className={classnames(styles.applyItem, isSelected && styles.selected)}
-                        >
-                          <View 
-                            className={styles.checkbox}
-                            catchTap
-                            onClick={() => toggleSelect(apply.id)}
-                          >
+                        <View key={apply.id} className={classnames(styles.applyItem, isSelected && styles.selected)}>
+                          <View className={styles.checkbox} catchTap onClick={() => toggleSelect(apply.id)}>
                             <View className={classnames(styles.checkboxInner, isSelected && styles.checked)}>
                               {isSelected && <Text className={styles.checkIcon}>✓</Text>}
                             </View>
                           </View>
 
-                          <View 
-                            className={styles.applyContent}
-                            onClick={() => handleCardClick(apply, game)}
-                          >
+                          <View className={styles.applyContent} onClick={() => handleCardClick(apply, game)}>
                             <View className={styles.playerInfo}>
-                              <Image 
-                                className={styles.avatar} 
-                                src={apply.player.avatar} 
-                                mode="aspectFill"
-                              />
+                              <Image className={styles.avatar} src={apply.player.avatar} mode="aspectFill" />
                               <View className={styles.playerDetail}>
                                 <View className={styles.playerNameRow}>
                                   <Text className={styles.playerName}>{apply.player.name}</Text>
@@ -270,26 +338,18 @@ const PendingPage: React.FC = () => {
                               </View>
                             </View>
 
-                            {apply.message && (
-                              <Text className={styles.message}>{apply.message}</Text>
-                            )}
-
-                            <Text className={styles.applyTime}>
-                              申请时间：{apply.applyTime}
-                            </Text>
+                            {apply.message && <Text className={styles.message}>{apply.message}</Text>}
+                            <Text className={styles.applyTime}>申请时间：{apply.applyTime}</Text>
 
                             {apply.status === 'pending' && (
                               <View className={styles.actions} catchTap>
-                                <View 
-                                  className={classnames(styles.btn, styles.btnReject)}
-                                  onClick={() => handleReject(apply.id)}
-                                >
+                                <View className={classnames(styles.btn, styles.btnReject)} onClick={() => handleReject(apply.id)}>
                                   <Text>婉拒</Text>
                                 </View>
-                                <View 
-                                  className={classnames(styles.btn, styles.btnApprove)}
-                                  onClick={() => handleApprove(apply.id)}
-                                >
+                                <View className={classnames(styles.btn, styles.btnWaitlist)} onClick={() => handleWaitlist(apply.id)}>
+                                  <Text>候补</Text>
+                                </View>
+                                <View className={classnames(styles.btn, styles.btnApprove)} onClick={() => handleApprove(apply.id)}>
                                   <Text>通过</Text>
                                 </View>
                               </View>
@@ -302,14 +362,9 @@ const PendingPage: React.FC = () => {
                 )}
               </View>
             );
-          }
-        )
-      ) : (
-          <EmptyState 
-            title="暂无报名记录"
-            description="等待玩家报名吧~"
-            icon="📋"
-          />
+          })
+        ) : (
+          <EmptyState title="暂无报名记录" description="等待玩家报名吧~" icon="📋" />
         )}
       </View>
 
@@ -319,17 +374,14 @@ const PendingPage: React.FC = () => {
             <Text>已选 {selectedIds.size} 项</Text>
           </View>
           <View className={styles.batchActions}>
-            <View 
-              className={classnames(styles.batchBtn, styles.batchReject)}
-              onClick={handleBatchReject}
-            >
-              <Text>批量婉拒</Text>
+            <View className={classnames(styles.batchBtn, styles.batchReject)} onClick={handleBatchReject}>
+              <Text>婉拒</Text>
             </View>
-            <View 
-              className={classnames(styles.batchBtn, styles.batchApprove)}
-              onClick={handleBatchApprove}
-            >
-              <Text>批量通过</Text>
+            <View className={classnames(styles.batchBtn, styles.batchWaitlist)} onClick={handleBatchWaitlist}>
+              <Text>候补</Text>
+            </View>
+            <View className={classnames(styles.batchBtn, styles.batchApprove)} onClick={handleBatchApprove}>
+              <Text>通过</Text>
             </View>
           </View>
         </View>

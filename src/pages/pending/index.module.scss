@@ -42,6 +42,7 @@
   color: $color-text-secondary;
   position: relative;
   flex-shrink: 0;
+  transition: all $transition-fast;
   
   &.active {
     color: $color-primary;
@@ -59,6 +60,61 @@
       border-radius: 3rpx;
     }
   }
+}
+
+.filters {
+  background: $color-bg-card;
+  padding: $spacing-sm $page-padding $spacing-md;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.filterRow {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: $spacing-sm;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.filterLabel {
+  width: 80rpx;
+  flex-shrink: 0;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  padding-top: 8rpx;
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  flex: 1;
+}
+
+.chip {
+  padding: 8rpx 20rpx;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  background: $color-bg-hover;
+  border-radius: $radius-sm;
+  white-space: nowrap;
+  transition: all $transition-fast;
+  
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.chipActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.chipSecondary.chipActive {
+  background: rgba(123, 44, 191, 0.15);
+  color: $color-primary;
 }
 
 .list {
@@ -285,6 +341,11 @@
   color: $color-text-secondary;
 }
 
+.btnWaitlist {
+  background: rgba(22, 119, 255, 0.1);
+  color: #1677FF;
+}
+
 .btnApprove {
   background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
   color: $color-text-white;
@@ -331,6 +392,11 @@
 .batchReject {
   background: $color-bg-hover;
   color: $color-error;
+}
+
+.batchWaitlist {
+  background: rgba(22, 119, 255, 0.1);
+  color: #1677FF;
 }
 
 .batchApprove {

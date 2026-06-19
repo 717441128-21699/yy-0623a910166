@@ -64,4 +64,4 @@ export interface ReviewItem {
   game: Game;
 }
 
-export type ApplyStatus = 'pending' | 'approved' | 'rejected' | 'all';
+export type ApplyStatus = 'pending' | 'approved' | 'rejected' | 'waitlist' | 'all';
